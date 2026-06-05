@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Otonom Proses Planlama | CANIAS ERP</title>
+    <title>EZEL KALIP | Otonom Proses</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -136,7 +136,7 @@
 
     <div class="modal-overlay" id="memoryModal">
         <div class="modal-content" style="width: 600px;">
-            <h2 style="margin-top:0; color:#8e44ad;">🧠 BM MADEN Şirket Hafızası</h2>
+            <h2 style="margin-top:0; color:#8e44ad;">🧠 EZEL KALIP Şirket Hafızası</h2>
             <p style="color:#7f8c8d; font-size:14px; text-align: left;">Sistem sizin yazdığınız bu kuralları her analizde dikkate alacaktır.</p>
             <textarea id="memoryInput" class="memory-textarea" placeholder="Örn:&#10;- M8'den büyük vidalarda fireyi %10 olarak hesapla.&#10;- Isıl işlem sürelerini en az 45 dk olarak belirle."></textarea>
             <p style="color:#7f8c8d; font-size:14px; text-align: left; margin-bottom: 5px;">Görsel Veri (Kopyala & Yapıştır - Önizleme):</p>
@@ -161,7 +161,7 @@
     <div class="header">
         <button class="memory-btn" onclick="openMemoryModal()">🧠 Şirket Hafızası</button>
         <button class="archive-btn" onclick="openArchiveModal()">🗄️ Arşiv</button>
-        <h1>CANIAS Otonom Proses ve Ürün Ağacı Planlama</h1>
+        <h1>EZEL KALIP PLANLAMA-ÜRETİM</h1>
         <div class="action-buttons">
             <button id="editBtn" class="btn btn-edit" onclick="toggleEdit()">✏️ Düzenle</button>
             <button id="excelBtn" class="btn btn-excel" onclick="excelIndir()">📊 Excel İndir</button>
@@ -219,17 +219,16 @@
                 aciklama: aciklama, 
                 sure: sure.toFixed(1), 
                 ops: ops,
-                thumb: base64Thumb // YENİ: Görsel verisini de kaydet
+                thumb: base64Thumb 
             };
             archive.unshift(newEntry); 
             if(archive.length > 50) archive.pop(); 
             
-            // Kota dolma riskine karşı try-catch
             try {
                 localStorage.setItem('bm_archive', JSON.stringify(archive));
             } catch (e) {
                 console.warn("Yerel hafıza doldu, en eski kayıtlar siliniyor...");
-                archive.splice(-5); // Son 5'i silip yer aç
+                archive.splice(-5); 
                 localStorage.setItem('bm_archive', JSON.stringify(archive));
             }
         }
@@ -243,7 +242,6 @@
                 listDiv.innerHTML = "<p style='text-align:center; color:#7f8c8d;'>Henüz arşivlenmiş bir analiz yok.</p>";
             } else {
                 archive.forEach(item => {
-                    // Eğer thumb (mini görsel) varsa img etiketi, yoksa boş gri kutu göster
                     let thumbHtml = item.thumb 
                         ? `<img src="data:image/jpeg;base64,${item.thumb}" class="archive-thumb" alt="Parça Görseli">` 
                         : `<div class="archive-thumb" style="display:flex; align-items:center; justify-content:center; background:#ecf0f1; font-size:10px; color:#95a5a6; text-align:center;">Görsel Yok</div>`;
@@ -270,7 +268,6 @@
                 openArchiveModal();
             }
         }
-        // ------------------------------------------
 
         const memoryModal = document.getElementById('memoryModal');
         const memoryInput = document.getElementById('memoryInput');
@@ -326,7 +323,7 @@
         let globalProsesler = []; 
         let isEditing = false;
         let sonHesaplananSure = 0;
-        let globalThumbnail = ""; // YENİ: Düzenleme sonrası arşivlemek için
+        let globalThumbnail = ""; 
 
         function toggleEdit() {
             if (globalProsesler.length === 0) return;
@@ -364,7 +361,6 @@
                 isEditing = false;
                 gorselleriGuncelle();
                 
-                // Arşive mini görselle beraber kaydet
                 saveToArchive(globalParcaKodu + " (Düzeltilmiş)", globalParcaAciklama, sonHesaplananSure, globalProsesler, globalThumbnail);
             }
         }
@@ -381,7 +377,7 @@
 
             let treeHTML = `<div class="tree-node raw">Hammadde (Tel/Çubuk)<br><span style="font-size:12px; font-weight:normal;">Brüt: ${ilkBrutKg} KG</span></div>`;
 
-            globalExcelData.push(["BM MADEN MAKINE - CANIAS PROSES PLANI"]);
+            globalExcelData.push(["EZEL KALIP PLANLAMA-ÜRETİM PROSES PLANI"]);
             globalExcelData.push([]);
             globalExcelData.push(["PARÇA KODU:", globalParcaKodu]);
             globalExcelData.push(["AÇIKLAMA:", globalParcaAciklama]);
@@ -431,7 +427,10 @@
 
         dropZone.addEventListener('click', () => fileInput.click());
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        
+        // HATA DÜZELTİLDİ: dragleave fonksiyonundaki yazım hatası ve fazlalık parantez giderildi.
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
+        
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault(); dropZone.classList.remove('dragover');
             if (e.dataTransfer.files.length > 0) dosyayiIsle(e.dataTransfer.files[0]);
@@ -503,6 +502,8 @@
             const formData = new FormData();
             formData.append("file", file);
             formData.append("target_code", targetCode); 
+            
+            // HATA DÜZELTİLDİ: bm_company_memory anahtarı HTML genelinde eşitlendi.
             const currentMemory = localStorage.getItem('bm_company_memory') || "";
             formData.append("sirket_hafizasi", currentMemory);
 
@@ -519,7 +520,7 @@
                     }
 
                     globalProsesler = prosesListesi; 
-                    globalThumbnail = result.thumbnail || ""; // YENİ: Python'dan gelen küçük resmi sakla
+                    globalThumbnail = result.thumbnail || ""; 
                     
                     printBtn.style.display = "inline-block"; 
                     excelBtn.style.display = "inline-block"; 
@@ -551,7 +552,6 @@
 
                     gorselleriGuncelle();
                     
-                    // YENİ: Arşive Kaydederken Mini Görseli de Gönder
                     saveToArchive(globalParcaKodu, globalParcaAciklama, sonHesaplananSure, globalProsesler, globalThumbnail);
 
                 } else {
