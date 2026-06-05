@@ -30,11 +30,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --------- ANA SAYFAYI AÇ -----------
 @app.get("/")
 async def ana_sayfa():
     return FileResponse("index.html")
-# ------------------------------------
 
 @app.post("/api/proses-olustur")
 async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("")):
@@ -49,8 +47,8 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
             doc = fitz.open(stream=contents, filetype="pdf")
             if len(doc) > 0:
                 page = doc.load_page(0)
-                # KOTA DOSTU 72 DPI (Hızlı yükleme ve düşük jeton kullanımı)
-                pix = page.get_pixmap(dpi=72) 
+                # KULLANICI İSTEĞİ: DPI YENİDEN 150'YE ÇIKARILDI (YÜKSEK ÇÖZÜNÜRLÜK)
+                pix = page.get_pixmap(dpi=150) 
                 mode = "RGBA" if pix.alpha else "RGB"
                 analiz_resmi = Image.frombytes(mode, [pix.width, pix.height], pix.samples)
             else:
@@ -60,14 +58,12 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
         else:
             raise HTTPException(status_code=400, detail="Lütfen PDF veya resim yükleyin.")
 
-        # MODEL 2.5 KULLANIMI
         model = genai.GenerativeModel('gemini-2.5-flash')
         
         if target_code and target_code.strip() != "":
             hedef_talimat = f"""
         [!!! HEDEF VARYANT: {target_code} !!!]
-        1. Kullanıcı bu resimdeki tablodan SADECE '{target_code}' varyantının/ölçüsünün analiz edilmesini istedi. Tablodaki diğer satırları tamamen YOK SAY! Sadece '{target_code}' değerine ait uzunluk, çap ve özellikleri kullanarak işlem yap.
-        2. Parça kodu ve açıklaması olarak bu hedefe uygun bilgileri kullan."""
+        1. Kullanıcı bu resimdeki tablodan SADECE '{target_code}' varyantının/ölçüsünün analiz edilmesini istedi. Tablodaki diğer satırları tamamen YOK SAY!"""
         else:
             hedef_talimat = """
         1. Resmin antet kısmındaki ana "CANIAS KODU"nu (örn: US10000028) bul.
@@ -80,7 +76,8 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
         
         3. Parçanın şekline, malzemesine ve toleranslarına bakarak mantıklı bir imalat proses rotası çıkar.
         4. Her operasyon için tahmini Brüt Kg, Net Kg, Fire Kg ve İşlem Süresi (DK) belirle.
-        5. "KONUŞAN KOD" SİSTEMİ: Operasyonun "canias_kodu" değerini oluştururken A-, B- gibi harfler YERİNE, operasyonu temsil eden 3 harfli bir önek kullan. Orijinal parça kodunun başındaki harfleri silip bu öneki ekle (Örn: Testere/Kesme için TES10000028).
+        5. "KONUŞAN KOD" SİSTEMİ: Operasyonun "canias_kodu" değerini oluştururken A-, B- gibi harfler YERİNE, operasyonu temsil eden 3 harfli bir önek kullan.
+        6. [YENİ YETENEK - GÖRSEL KOORDİNAT]: Her bir operasyonun parçanın tam olarak neresinde uygulandığını tahmin et. Bu bölgenin resim üzerindeki tahmini merkezini X (soldan sağa) ve Y (yukarıdan aşağıya) ekseninde YÜZDE (%) olarak 'x_yuzde' ve 'y_yuzde' değerlerine yaz. (Örn: Diş çekme uctaysa y_yuzde:80, kafa vurma üstteyse y_yuzde:20).
         
         Sadece ve sadece aşağıdaki JSON formatında çıktı ver. Başında veya sonunda hiçbir ekstra kelime kullanma:
         {{
@@ -93,7 +90,9 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
               "brut_kg": "0.00",
               "net_kg": "0.00",
               "fire_kg": "0.00",
-              "sure_dk": "0.0"
+              "sure_dk": "0.0",
+              "x_yuzde": 50,
+              "y_yuzde": 30
             }}
           ]
         }}
@@ -109,12 +108,9 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
             temiz_json = ham_metin[ilk_parantez:son_parantez+1]
             sonuc_verisi = json.loads(temiz_json)
         else:
-            print("--- YAPAY ZEKA BEKLENMEYEN CEVAP VERDİ ---")
-            print(ham_metin)
             raise ValueError("Yapay zeka JSON formatında yanıt vermedi.")
 
         return {"mesaj": "Başarılı", "veri": sonuc_verisi}
 
     except Exception as e:
-        print(f"\n[!!!] SUNUCU HATASI OLUŞTU: {str(e)}\n")
         raise HTTPException(status_code=500, detail=f"Sunucu hatası: {str(e)}")
