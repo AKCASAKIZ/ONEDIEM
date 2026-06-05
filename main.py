@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import fitz 
 import io
-import base64 
+import base64
 from PIL import Image
 import google.generativeai as genai
 import json
@@ -18,7 +18,6 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
-# EZEL KALIP PLANLAMA-ÜRETİM API
 app = FastAPI(title="EZEL KALIP PLANLAMA-ÜRETİM API")
 
 app.add_middleware(
@@ -60,17 +59,17 @@ async def proses_olustur(
         else:
             raise HTTPException(status_code=400, detail="Lütfen PDF veya resim yükleyin.")
 
-        # MİNİ GÖRSEL (THUMBNAIL) OLUŞTURMA
+        # --- MİNİ GÖRSEL (THUMBNAIL) OLUŞTURMA ---
         thumb_img = analiz_resmi.copy()
-        thumb_img.thumbnail((150, 150)) 
+        thumb_img.thumbnail((150, 150))
         buffered = io.BytesIO()
-        thumb_img.save(buffered, format="JPEG", quality=60) 
+        thumb_img.save(buffered, format="JPEG", quality=60)
         thumbnail_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
-
+        
         hedef_talimat = f"""
         [!!! HEDEF VARYANT: {target_code} !!!]
         1. Kullanıcı bu resimdeki tablodan SADECE '{target_code}' varyantının/ölçüsünün analiz edilmesini istedi. Tablodaki diğer satırları tamamen YOK SAY!""" if target_code else """
-        1. Resmin antet kısmındaki ana "CANIAS KODU"nu bul.
+        1. Resmin antet kısmındaki ana "KODU"nu bul.
         2. Antetteki "AÇIKLAMA" veya parça adını bul."""
 
         hafiza_talimati = f"""
@@ -89,7 +88,7 @@ async def proses_olustur(
         4. Her operasyon için tahmini Brüt Kg, Net Kg, Fire Kg ve İşlem Süresi (DK) belirle.
         5. "KONUŞAN KOD" SİSTEMİ (ÇOK ÖNEMLİ): Orijinal parça kodunun başındaki harfi (örn: 'U') tamamen SİL. Sadece rakamlar kalsın. Bu rakamların başına operasyonu temsil eden 2 HARFLİ bir önek ekle. (Örn: Parça U0009815 ve işlem Testere ise kod TE0009815 olmalı, Torna ise TO0009815 olmalı).
         6. [AÇIKLAMALAR ÇİFTLENDİ]: Her operasyon için İKİ farklı açıklama yazacaksın:
-           - "kisa_aciklama": CANIAS'a kaydedilecek, operasyonu net özetleyen MAKSİMUM 125 KARAKTERLİK metin.
+           - "kisa_aciklama": ERP'ye kaydedilecek, operasyonu net özetleyen MAKSİMUM 125 KARAKTERLİK metin.
            - "uzun_aciklama": Operatörün tezgahta okuyacağı, dikkat edilecek hassasiyetleri ve detayları içeren MAKSİMUM 500 KARAKTERLİK talimat.
         
         Sadece JSON formatında çıktı ver:
@@ -109,44 +108,38 @@ async def proses_olustur(
           ]
         }}
         """
-
-        models_to_try = [
-            "gemini-2.5-flash",
-            "gemini-2.0-flash",
-            "gemini-2.5-flash-lite",
-            "gemini-1.5-flash"
-        ]
         
+        # --- KOTA AŞIMI (429) İÇİN DİNAMİK MODEL YEDEKLEME ---
+        modeller = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash']
         response = None
-        last_error = None
-        successful_model = None
-
-        for model_name in models_to_try:
-            try:
-                print(f"[INFO] Analyzing drawing using model: {model_name}...")
-                model = genai.GenerativeModel(model_name)
-                response = model.generate_content([prompt, analiz_resmi])
-                successful_model = model_name
-                print(f"[SUCCESS] Analysis completed successfully using {model_name}!")
-                break
-            except Exception as e:
-                err_str = str(e)
-                print(f"[WARNING] Model {model_name} failed. Error details: {err_str}")
-                last_error = e
-                # Kotaya veya istek sınırına takıldıysak sonraki modeli dene
-                if "quota" in err_str.lower() or "429" in err_str or "resource_exhausted" in err_str.lower():
-                    continue
-                else:
-                    # Kritik bir hata ise (örn. geçersiz anahtar) bekletmeden fırlat
-                    raise e
+        hata_mesaji = ""
         
+        for model_adi in modeller:
+            try:
+                model = genai.GenerativeModel(model_adi)
+                response = model.generate_content([prompt, analiz_resmi])
+                break 
+            except Exception as e:
+                hata_mesaji = str(e)
+                print(f"[UYARI] {model_adi} başarısız: {hata_mesaji}. Diğerine geçiliyor...")
+                continue 
+                
         if not response:
-            raise HTTPException(
-                status_code=429, 
-                detail=f"Tüm yedek modellerin günlük kotası aşıldı! Son hata detayı: {str(last_error)}"
-            )
+            raise ValueError(f"Tüm modellerin kotası doldu veya hata oluştu. {hata_mesaji}")
 
         ham_metin = response.text
+        
+        # --- TOKEN VE MALİYET HESAPLAMA ---
+        try:
+            p_tokens = response.usage_metadata.prompt_token_count
+            c_tokens = response.usage_metadata.candidates_token_count
+            t_tokens = response.usage_metadata.total_token_count
+            maliyet = (p_tokens / 1_000_000 * 0.075) + (c_tokens / 1_000_000 * 0.30)
+            maliyet_str = f"${maliyet:.5f}"
+        except Exception:
+            t_tokens = 0
+            maliyet_str = "$0.00000"
+        
         ilk_parantez = ham_metin.find('{')
         son_parantez = ham_metin.rfind('}')
         
@@ -156,17 +149,7 @@ async def proses_olustur(
         else:
             raise ValueError("Yapay zeka JSON formatında yanıt vermedi.")
 
-        return {
-            "mesaj": "Başarılı", 
-            "veri": sonuc_verisi, 
-            "thumbnail": thumbnail_b64,
-            "analiz_modeli": successful_model
-        }
+        return {"mesaj": "Başarılı", "veri": sonuc_verisi, "thumbnail": thumbnail_b64, "token": t_tokens, "maliyet": maliyet_str}
 
     except Exception as e:
-        print(f"[ERROR] API Exception: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Sunucu hatası: {str(e)}")
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=10000, reload=True)
