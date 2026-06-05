@@ -35,7 +35,7 @@ async def ana_sayfa():
 async def proses_olustur(
     file: UploadFile = File(...), 
     target_code: str = Form(""),
-    sirket_hafizasi: str = Form("") # YENİ: SİZİN KURALLARINIZ
+    sirket_hafizasi: str = Form("")
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="Dosya seçilmedi")
@@ -66,10 +66,9 @@ async def proses_olustur(
         1. Resmin antet kısmındaki ana "CANIAS KODU"nu bul.
         2. Antetteki "AÇIKLAMA" veya parça adını bul."""
 
-        # EĞER ŞİRKET HAFIZASINDA BİLGİ VARSA, BEYNE ENJEKTE ET
         hafiza_talimati = f"""
-        [!!! EZEL CIVATA KURUMSAL HAFIZA (KESİN UYULACAK) !!!]
-        Aşağıdaki kurallar bizzat baş mühendis tarafından yazılmıştır. Prosesi oluştururken bu kuralları ASLA çiğneme ve hesaplamalarını buna göre yap:
+        [!!! KURUMSAL HAFIZA (KESİN UYULACAK) !!!]
+        Aşağıdaki kurallar bizzat mühendis tarafından yazılmıştır. Prosesi oluştururken bu kuralları ASLA çiğneme ve hesaplamalarını buna göre yap:
         {sirket_hafizasi}
         """ if sirket_hafizasi and sirket_hafizasi.strip() != "" else ""
 
@@ -81,8 +80,10 @@ async def proses_olustur(
         
         3. Parçanın şekline, malzemesine ve toleranslarına bakarak mantıklı bir imalat proses rotası çıkar.
         4. Her operasyon için tahmini Brüt Kg, Net Kg, Fire Kg ve İşlem Süresi (DK) belirle.
-        5. "KONUŞAN KOD" SİSTEMİ: Operasyonun "canias_kodu" değerini oluştururken A-, B- gibi harfler YERİNE, operasyonu temsil eden 3 harfli bir önek kullan.
-        6. [GÖRSEL KOORDİNAT]: Her bir operasyonun parçanın neresinde yapıldığını tahmin edip x_yuzde ve y_yuzde olarak ekle.
+        5. "KONUŞAN KOD" SİSTEMİ (ÇOK ÖNEMLİ): Orijinal parça kodunun başındaki harfi (örn: 'U') tamamen SİL. Sadece rakamlar kalsın. Bu rakamların başına operasyonu temsil eden 2 HARFLİ bir önek ekle. (Örn: Parça U0009815 ve işlem Testere ise kod TE0009815 olmalı, Torna ise TO0009815 olmalı).
+        6. [AÇIKLAMALAR ÇİFTLENDİ]: Her operasyon için İKİ farklı açıklama yazacaksın:
+           - "kisa_aciklama": CANIAS'a kaydedilecek, operasyonu net özetleyen MAKSİMUM 125 KARAKTERLİK metin.
+           - "uzun_aciklama": Operatörün tezgahta okuyacağı, dikkat edilecek hassasiyetleri ve detayları içeren MAKSİMUM 500 KARAKTERLİK talimat.
         
         Sadece JSON formatında çıktı ver:
         {{
@@ -90,14 +91,13 @@ async def proses_olustur(
           "parca_aciklamasi": "BULUNAN_AÇIKLAMA",
           "prosesler": [
             {{
-              "canias_kodu": "TES10000028",
-              "aciklama": "Operasyon detaylı açıklaması",
+              "canias_kodu": "TE0009815",
+              "kisa_aciklama": "125 karaktere kadar kısa özet",
+              "uzun_aciklama": "500 karaktere kadar detaylı operatör talimatı",
               "brut_kg": "0.00",
               "net_kg": "0.00",
               "fire_kg": "0.00",
-              "sure_dk": "0.0",
-              "x_yuzde": 50,
-              "y_yuzde": 30
+              "sure_dk": "0.0"
             }}
           ]
         }}
