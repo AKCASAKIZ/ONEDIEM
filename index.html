@@ -8,11 +8,8 @@
 
     <style>
         :root { 
-            --primary-color: #2c3e50; 
-            --secondary-color: #34495e; 
-            --accent-color: #27ae60; 
-            --bg-color: #ecf0f1; 
-            --box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --primary-color: #2c3e50; --secondary-color: #34495e; 
+            --accent-color: #27ae60; --bg-color: #ecf0f1; --box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); padding: 15px; margin: 0; color: var(--primary-color); }
         .header { text-align: center; margin-bottom: 20px; position: relative;}
@@ -28,7 +25,7 @@
         .top-container { display: flex; gap: 20px; align-items: stretch; }
         .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: var(--box-shadow); display: flex; flex-direction: column; }
         
-        .col-left { flex: 0 0 30%; } 
+        .col-left { flex: 0 0 35%; } 
         .col-mid { flex: 0 0 45%; }  
         .col-right { flex: 1; }      
         
@@ -38,9 +35,16 @@
         .drop-zone.dragover { border-color: var(--accent-color); background-color: #e8f8f5; }
         .drop-zone input { display: none; }
         
+        /* RESİM ALANI (PINLER İÇİN RELATIVE YAPILDI) */
         #previewContainer { flex-grow: 1; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: none; background: #333; min-height: 600px; position: relative; display: flex; align-items: center; justify-content: center;}
-        #previewContainer img, #previewContainer iframe { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; }
+        #previewContainer img, #previewContainer iframe { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1;}
         
+        /* YENİ: YAPAY ZEKA GÖRSEL İŞARETÇİLERİ (PINLER) */
+        .ai-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; z-index: 10; animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: none;}
+        @keyframes dropIn { from { opacity: 0; transform: translate(-50%, -150%) scale(0.5); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
+        .ai-pin-badge { background: #e74c3c; color: white; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 13px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 2px solid white; white-space: nowrap;}
+        .ai-pin-arrow { width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid #e74c3c; margin-top: -2px; filter: drop-shadow(0 4px 2px rgba(0,0,0,0.3));}
+
         .info-card { background: #e8f8f5; border-left: 5px solid var(--accent-color); padding: 15px; margin-bottom: 20px; border-radius: 4px; display: none; }
         .info-card h2 { margin: 0 0 5px 0; font-size: 20px; color: #2c3e50; }
         .info-card p { margin: 3px 0; color: #34495e; font-weight: bold; }
@@ -65,10 +69,9 @@
         .tree-line { width: 3px; height: 30px; background: #bdc3c7; z-index: 1;}
 
         .loader { display: none; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
-        .rotate-btn { background-color: var(--accent-color); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; display: none; }
+        .rotate-btn { background-color: var(--accent-color); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; display: none; z-index: 20; position: relative;}
         .rotate-btn:hover { background-color: #219653; }
 
-        /* VARYANT SORMA MODALI (YENİ) */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
         .modal-content { background: white; padding: 30px; border-radius: 12px; width: 450px; max-width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideDown 0.3s ease-out; }
         @keyframes slideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -90,6 +93,8 @@
             .col-left h3 { display: none; } 
             #previewContainer { display: flex !important; width: 100%; height: 100%; border: none; background: transparent; }
             #previewContainer img, #previewContainer iframe { object-fit: contain; width: 100%; height: 100%; }
+            /* Yazdırırken pinleri hafif şeffaf yap */
+            .ai-pin { opacity: 0.8 !important; }
             .col-mid { width: 100%; page-break-inside: avoid; margin-bottom: 30px; padding-top: 20px;}
             .col-right { width: 100%; page-break-inside: avoid; margin-bottom: 30px; }
             .bottom-container { width: 100%; page-break-inside: avoid; }
@@ -128,6 +133,7 @@
                     <p style="margin:5px 0;">Dosyayı Sürükleyin veya Tıklayın</p>
                     <input type="file" id="fileInput" accept=".pdf, .png, .jpg, .jpeg">
                 </div>
+                <!-- PİNLER BURANIN İÇİNDE GÖRÜNECEK -->
                 <div id="previewContainer"></div>
                 <div class="loader" id="loader"></div>
                 <p id="statusMessage" style="text-align: center; font-weight: bold;"></p>
@@ -193,7 +199,7 @@
         let currentRotation = 0; 
         let globalExcelData = [];
         let globalParcaKodu = "Proses";
-        let pendingFile = null; // Sürüklenen dosyayı geçici olarak tutacak değişken
+        let pendingFile = null; 
 
         dropZone.addEventListener('click', () => fileInput.click());
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -213,27 +219,25 @@
             
             const fileURL = URL.createObjectURL(file);
             
+            // PDF veya Resim gösterimi
             if(file.type === "application/pdf") {
                 previewContainer.innerHTML = `<iframe id="docFrame" src="${fileURL}#toolbar=0" frameborder="0"></iframe>`;
             } else {
                 previewContainer.innerHTML = `<img id="docImage" src="${fileURL}" alt="Önizleme">`;
             }
             
-            // Dosyayı hafızaya al ve Soruyu Göster (Modal)
             pendingFile = file;
-            document.getElementById('variantInput').value = ""; // Eski yazıyı temizle
-            document.getElementById('variantModal').style.display = "flex"; // Pencereyi aç
-            document.getElementById('variantInput').focus(); // İmleci kutuya koy
+            document.getElementById('variantInput').value = ""; 
+            document.getElementById('variantModal').style.display = "flex"; 
+            document.getElementById('variantInput').focus(); 
         }
 
-        // Modal'daki Butona basılınca (Veya Enter'a basılınca) çalışacak fonksiyon
         function startAnalysis() {
-            document.getElementById('variantModal').style.display = "none"; // Pencereyi kapat
-            const targetCode = document.getElementById('variantInput').value; // Yazılan kodu al
-            apiyeGonder(pendingFile, targetCode); // API'ye gönder
+            document.getElementById('variantModal').style.display = "none"; 
+            const targetCode = document.getElementById('variantInput').value; 
+            apiyeGonder(pendingFile, targetCode); 
         }
 
-        // Kutudayken Enter tuşuna basmayı algıla
         document.getElementById('variantInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') startAnalysis();
         });
@@ -241,6 +245,7 @@
         function resmiDondur() {
             currentRotation = (currentRotation + 90) % 360;
             const element = document.getElementById('docImage') || document.getElementById('docFrame');
+            // Pinlerin dönmemesi için sadece resmi döndürüyoruz
             if(element) { element.style.transform = `rotate(${currentRotation}deg)`; }
         }
 
@@ -265,10 +270,13 @@
             timelineContainer.innerHTML = "";
             treeContainer.innerHTML = "";
             globalExcelData = []; 
+            
+            // Eski pinleri temizle
+            document.querySelectorAll('.ai-pin').forEach(pin => pin.remove());
 
             const formData = new FormData();
             formData.append("file", file);
-            formData.append("target_code", targetCode); // GİRİLEN KODU PYTHON'A GÖNDERİYORUZ
+            formData.append("target_code", targetCode); 
 
             try {
                 const response = await fetch("/api/proses-olustur", { method: "POST", body: formData });
@@ -309,10 +317,11 @@
                     globalExcelData.push([]);
                     globalExcelData.push(["CANIAS KODU", "OPERASYON AÇIKLAMASI", "BRÜT (KG)", "NET (KG)", "FİRE (KG)", "SÜRE (DK)"]);
 
-                    prosesListesi.forEach((proses) => {
+                    prosesListesi.forEach((proses, index) => {
                         let sure = parseFloat(proses.sure_dk) || 0;
                         toplamSure += sure;
 
+                        // TABLOYA EKLE
                         const tr = document.createElement("tr");
                         tr.innerHTML = `
                             <td style="font-weight:bold; color:var(--primary-color);">${proses.canias_kodu || '-'}</td>
@@ -324,18 +333,44 @@
                         `;
                         tableBody.appendChild(tr);
 
+                        // EXCELE EKLE
                         globalExcelData.push([ proses.canias_kodu || '-', proses.aciklama || '-', proses.brut_kg || '-', proses.net_kg || '-', proses.fire_kg || '-', proses.sure_dk || '-' ]);
 
+                        // İNFOGRAFİĞE EKLE
                         const opKisaAd = (proses.aciklama || "").split(':')[0];
                         timelineContainer.innerHTML += `
                             <div class="timeline-item">
-                                <div class="timeline-title">${proses.canias_kodu} | ${opKisaAd}</div>
+                                <div class="timeline-title">${index + 1}. ${proses.canias_kodu} | ${opKisaAd}</div>
                                 <div class="timeline-desc">${proses.aciklama}</div>
                                 <div class="timeline-badge">Süre: ${proses.sure_dk} Dk</div>
                             </div>
                         `;
+
+                        // ÜRÜN AĞACINA EKLE
                         treeHTML += `<div class="tree-line"></div>`;
                         treeHTML += `<div class="tree-node">${proses.canias_kodu}<br><span style="font-size:12px; font-weight:normal;">Fire: ${proses.fire_kg} KG</span></div>`;
+
+                        // === YENİ: RESİM ÜZERİNE OKLU PİN (İŞARETÇİ) EKLEME ===
+                        if (proses.x_yuzde !== undefined && proses.y_yuzde !== undefined) {
+                            // Aynı yere denk gelen operasyonlar (örn: arka arkaya 2 kafa vurma) üst üste binmesin diye hafif rastgele kaydırma
+                            let offsetX = proses.x_yuzde + (Math.random() * 4 - 2); 
+                            let offsetY = proses.y_yuzde + (Math.random() * 4 - 2);
+
+                            let pin = document.createElement("div");
+                            pin.className = "ai-pin";
+                            // Görsel efekt gecikmesi
+                            pin.style.animationDelay = `${index * 0.2}s`; 
+                            pin.style.left = offsetX + "%";
+                            pin.style.top = offsetY + "%";
+                            
+                            // Pin içeriği (1. TES, 2. VUR vs.)
+                            let kisaKod = proses.canias_kodu ? proses.canias_kodu.substring(0,3) : "OPR";
+                            pin.innerHTML = `
+                                <div class="ai-pin-badge">${index + 1}. ${kisaKod}</div>
+                                <div class="ai-pin-arrow"></div>
+                            `;
+                            previewContainer.appendChild(pin);
+                        }
                     });
 
                     const trToplam = document.createElement("tr");
