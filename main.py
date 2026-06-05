@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import fitz 
 import io
+import base64 # YENİ: Görseli metne çevirmek için
 from PIL import Image
 import google.generativeai as genai
 import json
@@ -57,6 +58,14 @@ async def proses_olustur(
             analiz_resmi = Image.open(io.BytesIO(contents))
         else:
             raise HTTPException(status_code=400, detail="Lütfen PDF veya resim yükleyin.")
+
+        # --- YENİ: MİNİ GÖRSEL (THUMBNAIL) OLUŞTURMA ---
+        thumb_img = analiz_resmi.copy()
+        thumb_img.thumbnail((150, 150)) # Maksimum 150x150 piksel yap
+        buffered = io.BytesIO()
+        thumb_img.save(buffered, format="JPEG", quality=60) # Çok düşük boyutta kaydet
+        thumbnail_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        # ------------------------------------------------
 
         model = genai.GenerativeModel('gemini-2.5-flash')
         
@@ -115,7 +124,8 @@ async def proses_olustur(
         else:
             raise ValueError("Yapay zeka JSON formatında yanıt vermedi.")
 
-        return {"mesaj": "Başarılı", "veri": sonuc_verisi}
+        # YENİ: JSON'a "thumbnail" verisini de ekleyip web sayfasına yolluyoruz
+        return {"mesaj": "Başarılı", "veri": sonuc_verisi, "thumbnail": thumbnail_b64}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Sunucu hatası: {str(e)}")
