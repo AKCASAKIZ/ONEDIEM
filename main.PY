@@ -20,6 +20,13 @@ if not API_KEY:
 genai.configure(api_key=API_KEY)
 
 app = FastAPI(title="CANIAS İmalat Prosesi API")
+# --------- YENİ EKLENEN KISIM: Ana Sayfayı Aç -----------
+@app.get("/")
+async def ana_sayfa():
+    return FileResponse("index.html")
+# --------------------------------------------------------
+
+@app.post("/api/proses-olustur")
 
 app.add_middleware(
     CORSMiddleware,
