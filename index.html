@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EZEL KALIP | Otonom Proses</title>
+    <title>EZEL KALIP | Otonom Proses Planlama</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -30,7 +30,6 @@
         .archive-btn { position: absolute; left: 195px; top: 10px; background-color: #34495e; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;}
         .archive-btn:hover { background-color: #1a252f; }
         
-        /* YENİ ARŞİV TASARIMI (MİNİ GÖRSELLİ) */
         .archive-list { max-height: 450px; overflow-y: auto; text-align: left; margin-top: 15px; padding-right: 10px;}
         .archive-item { background: #f8f9fa; border-left: 4px solid var(--primary-color); padding: 10px 15px; margin-bottom: 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; display: flex; gap: 15px; align-items: center;}
         .archive-item:hover { transform: translateX(5px); }
@@ -122,10 +121,18 @@
 </head>
 <body>
 
+    <div class="login-overlay" id="loginOverlay" style="display:flex;">
+        <div class="modal-content" style="width: 350px;">
+            <h2 style="color:var(--primary-color);">EZEL KALIP - Giriş</h2>
+            <input type="text" id="username" class="modal-input" placeholder="Kullanıcı Adı" style="width: 85%;">
+            <input type="password" id="password" class="modal-input" placeholder="Şifre" style="width: 85%;">
+            <button class="modal-btn" onclick="checkLogin()">GİRİŞ YAP</button>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="archiveModal">
         <div class="modal-content" style="width: 650px;">
             <h2 style="margin-top:0; color:var(--primary-color);">🗄️ Geçmiş Analiz Arşivi</h2>
-            <p style="color:#7f8c8d; font-size:14px; text-align: left;">Daha önce analiz edilen parçaların listesi (Son 50 kayıt).</p>
             <div class="archive-list" id="archiveList"></div>
             <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="modal-btn" style="background-color: #bdc3c7; color: #333;" onclick="document.getElementById('archiveModal').style.display='none'">Kapat</button>
@@ -137,9 +144,7 @@
     <div class="modal-overlay" id="memoryModal">
         <div class="modal-content" style="width: 600px;">
             <h2 style="margin-top:0; color:#8e44ad;">🧠 EZEL KALIP Şirket Hafızası</h2>
-            <p style="color:#7f8c8d; font-size:14px; text-align: left;">Sistem sizin yazdığınız bu kuralları her analizde dikkate alacaktır.</p>
-            <textarea id="memoryInput" class="memory-textarea" placeholder="Örn:&#10;- M8'den büyük vidalarda fireyi %10 olarak hesapla.&#10;- Isıl işlem sürelerini en az 45 dk olarak belirle."></textarea>
-            <p style="color:#7f8c8d; font-size:14px; text-align: left; margin-bottom: 5px;">Görsel Veri (Kopyala & Yapıştır - Önizleme):</p>
+            <textarea id="memoryInput" class="memory-textarea" placeholder="Kuralları yazın..."></textarea>
             <div id="visualBoard" class="memory-visual-board" contenteditable="true" data-text="Bir resim kopyalayıp buraya yapıştırın (Ctrl+V)">
                 <span style="color:#bdc3c7; pointer-events: none;">Görseli buraya yapıştırın (Ctrl+V)</span>
             </div>
@@ -151,9 +156,7 @@
     <div class="modal-overlay" id="variantModal">
         <div class="modal-content">
             <h2 style="margin-top:0; color:var(--primary-color);">Tablolu Resim Kontrolü</h2>
-            <p style="color:#7f8c8d; font-size:14px; margin-bottom:20px;">Eğer yüklediğiniz teknik resimde bir <b>ölçü/kod tablosu</b> varsa, hedef kodu buraya yazın.</p>
             <input type="text" id="variantInput" class="modal-input" placeholder="Örn: 10000028 veya M8x50">
-            <p style="color:#95a5a6; font-size:12px; margin-top:0;">(Tek bir parça ise kutuyu boş bırakıp devam edebilirsiniz.)</p>
             <button class="modal-btn" onclick="startAnalysis()">🚀 Yapay Zeka Analizini Başlat</button>
         </div>
     </div>
@@ -184,7 +187,15 @@
             
             <div class="panel col-mid">
                 <h3 style="margin-top:0;">2. Operasyon Rota Verileri (ROUT01)</h3>
-                <div class="info-card" id="infoCard"><h2 id="lblParcaKodu">KOD: -</h2><p id="lblParcaAciklamasi">AÇIKLAMA: -</p><p id="lblToplamSure" class="total-time-highlight">TOPLAM SÜRE: -</p></div>
+                <div class="info-card" id="infoCard">
+                    <h2 id="lblParcaKodu">KOD: -</h2>
+                    <p id="lblParcaAciklamasi">AÇIKLAMA: -</p>
+                    <p id="lblToplamSure" class="total-time-highlight">TOPLAM SÜRE: -</p>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <span id="lblToken" style="background:#3498db; color:white; padding:6px 10px; border-radius:6px; font-size:13px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">🪙 Token: 0</span>
+                        <span id="lblMaliyet" style="background:#2ecc71; color:white; padding:6px 10px; border-radius:6px; font-size:13px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">💵 Maliyet: $0.00000</span>
+                    </div>
+                </div>
                 <div style="overflow-x:auto;">
                     <table id="prosesTable">
                         <thead><tr><th>KOD</th><th>KISA AÇIKLAMA (125)</th><th>UZUN AÇIKLAMA (500)</th><th>BRÜT</th><th>NET</th><th>FİRE</th><th>SÜRE(DK)</th></tr></thead>
@@ -206,35 +217,37 @@
     </div>
 
     <script>
-        // --- ARŞİV SİSTEMİ GÜNCELLEMESİ (GÖRSELLİ) ---
+        function checkLogin() {
+            const u = document.getElementById('username').value.toUpperCase();
+            const p = document.getElementById('password').value.toUpperCase();
+            if ((u === "CAGLAR" && p === "CAGLAR") || (u === "TUNC" && p === "TUNC")) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                sessionStorage.setItem('isLoggedIn', 'true');
+            } else {
+                alert("Hatalı Kullanıcı Adı veya Şifre!");
+            }
+        }
+
+        if (sessionStorage.getItem('isLoggedIn') === 'true') {
+            document.getElementById('loginOverlay').style.display = 'none';
+        }
+
         function saveToArchive(kodu, aciklama, sure, prosesler, base64Thumb) {
-            let archive = JSON.parse(localStorage.getItem('bm_archive') || '[]');
+            let archive = JSON.parse(localStorage.getItem('ezel_archive') || '[]');
             let ops = prosesler.map(p => p.canias_kodu ? p.canias_kodu.substring(0,2) : "OP").join(" ➔ ");
             let now = new Date();
             let dateStr = now.toLocaleDateString('tr-TR') + " " + now.toLocaleTimeString('tr-TR');
             
-            let newEntry = { 
-                tarih: dateStr, 
-                kodu: kodu, 
-                aciklama: aciklama, 
-                sure: sure.toFixed(1), 
-                ops: ops,
-                thumb: base64Thumb 
-            };
+            let newEntry = { tarih: dateStr, kodu: kodu, aciklama: aciklama, sure: sure.toFixed(1), ops: ops, thumb: base64Thumb };
             archive.unshift(newEntry); 
             if(archive.length > 50) archive.pop(); 
             
-            try {
-                localStorage.setItem('bm_archive', JSON.stringify(archive));
-            } catch (e) {
-                console.warn("Yerel hafıza doldu, en eski kayıtlar siliniyor...");
-                archive.splice(-5); 
-                localStorage.setItem('bm_archive', JSON.stringify(archive));
-            }
+            try { localStorage.setItem('ezel_archive', JSON.stringify(archive)); } 
+            catch (e) { archive.splice(-5); localStorage.setItem('ezel_archive', JSON.stringify(archive)); }
         }
 
         function openArchiveModal() {
-            let archive = JSON.parse(localStorage.getItem('bm_archive') || '[]');
+            let archive = JSON.parse(localStorage.getItem('ezel_archive') || '[]');
             let listDiv = document.getElementById('archiveList');
             listDiv.innerHTML = "";
             
@@ -242,10 +255,7 @@
                 listDiv.innerHTML = "<p style='text-align:center; color:#7f8c8d;'>Henüz arşivlenmiş bir analiz yok.</p>";
             } else {
                 archive.forEach(item => {
-                    let thumbHtml = item.thumb 
-                        ? `<img src="data:image/jpeg;base64,${item.thumb}" class="archive-thumb" alt="Parça Görseli">` 
-                        : `<div class="archive-thumb" style="display:flex; align-items:center; justify-content:center; background:#ecf0f1; font-size:10px; color:#95a5a6; text-align:center;">Görsel Yok</div>`;
-                        
+                    let thumbHtml = item.thumb ? `<img src="data:image/jpeg;base64,${item.thumb}" class="archive-thumb">` : `<div class="archive-thumb">Görsel Yok</div>`;
                     listDiv.innerHTML += `
                         <div class="archive-item">
                             ${thumbHtml}
@@ -255,8 +265,7 @@
                                 <div class="archive-desc">${item.aciklama}</div>
                                 <div class="archive-ops">Rota: ${item.ops}</div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 });
             }
             document.getElementById('archiveModal').style.display = 'flex';
@@ -264,7 +273,7 @@
 
         function clearArchive() {
             if(confirm("Tüm geçmiş arşivi silmek istediğinize emin misiniz?")) {
-                localStorage.removeItem('bm_archive');
+                localStorage.removeItem('ezel_archive');
                 openArchiveModal();
             }
         }
@@ -274,13 +283,13 @@
         const visualBoard = document.getElementById('visualBoard');
 
         window.onload = () => {
-            const savedMemory = localStorage.getItem('bm_company_memory');
+            const savedMemory = localStorage.getItem('ezel_company_memory');
             if (savedMemory) memoryInput.value = savedMemory;
         };
 
         function openMemoryModal() { memoryModal.style.display = 'flex'; }
         function saveMemory() {
-            localStorage.setItem('bm_company_memory', memoryInput.value);
+            localStorage.setItem('ezel_company_memory', memoryInput.value);
             memoryModal.style.display = 'none';
             alert("Şirket Hafızası Güncellendi!");
         }
@@ -291,10 +300,9 @@
             for (let index in items) {
                 const item = items[index];
                 if (item.kind === 'file' && item.type.startsWith('image/')) {
-                    const blob = item.getAsFile();
                     const reader = new FileReader();
                     reader.onload = (event) => { visualBoard.innerHTML = `<img src="${event.target.result}">`; };
-                    reader.readAsDataURL(blob);
+                    reader.readAsDataURL(item.getAsFile());
                 }
             }
         });
@@ -360,7 +368,6 @@
                 editBtn.style.backgroundColor = "#f39c12";
                 isEditing = false;
                 gorselleriGuncelle();
-                
                 saveToArchive(globalParcaKodu + " (Düzeltilmiş)", globalParcaAciklama, sonHesaplananSure, globalProsesler, globalThumbnail);
             }
         }
@@ -390,28 +397,22 @@
 
                 globalExcelData.push([ proses.canias_kodu || '-', proses.kisa_aciklama || '-', proses.uzun_aciklama || '-', proses.brut_kg || '-', proses.net_kg || '-', proses.fire_kg || '-', proses.sure_dk || '-' ]);
 
-                const opKisaAd = (proses.kisa_aciklama || "").split(':')[0];
                 timelineContainer.innerHTML += `
                     <div class="timeline-item" id="timeline-${index}">
                         <div class="timeline-title">${index + 1}. ${proses.canias_kodu}</div>
                         <div class="timeline-desc"><strong>ERP:</strong> ${proses.kisa_aciklama}</div>
                         <div class="timeline-long-desc"><strong>Operatör Notu:</strong> ${proses.uzun_aciklama}</div>
                         <div class="timeline-badge">Süre: ${proses.sure_dk} Dk</div>
-                    </div>
-                `;
+                    </div>`;
 
-                treeHTML += `<div class="tree-line"></div>`;
-                treeHTML += `<div class="tree-node">${proses.canias_kodu}<br><span style="font-size:12px; font-weight:normal;">Fire: ${proses.fire_kg} KG</span></div>`;
+                treeHTML += `<div class="tree-line"></div><div class="tree-node">${proses.canias_kodu}<br><span style="font-size:12px; font-weight:normal;">Fire: ${proses.fire_kg} KG</span></div>`;
             });
 
             sonHesaplananSure = toplamSure;
 
             const trToplam = document.createElement("tr");
             trToplam.style.backgroundColor = "#e8f8f5";
-            trToplam.innerHTML = `
-                <td colspan="6" style="text-align:right; font-weight:bold; color:var(--primary-color);">TOPLAM İMALAT SÜRESİ:</td>
-                <td style="font-weight:bold; color:#d35400; font-size: 16px;">${toplamSure.toFixed(1)} Dk</td>
-            `;
+            trToplam.innerHTML = `<td colspan="6" style="text-align:right; font-weight:bold; color:var(--primary-color);">TOPLAM İMALAT SÜRESİ:</td><td style="font-weight:bold; color:#d35400; font-size: 16px;">${toplamSure.toFixed(1)} Dk</td>`;
             tableFoot.appendChild(trToplam);
             
             document.getElementById('lblToplamSure').innerText = `⏱️ TOPLAM SÜRE: ${toplamSure.toFixed(1)} Dakika`;
@@ -420,17 +421,13 @@
             globalExcelData.push([]);
             globalExcelData.push(["", "", "", "", "", "TOPLAM SÜRE:", `${toplamSure.toFixed(1)} Dk`]);
 
-            treeHTML += `<div class="tree-line"></div>`;
-            treeHTML += `<div class="tree-node final">Nihai Parça: ${globalParcaKodu}<br><span style="font-size:14px; font-weight:normal;">Net Ağırlık: ${sonNetKg} KG | Toplam Süre: ${toplamSure.toFixed(1)} Dk</span></div>`;
+            treeHTML += `<div class="tree-line"></div><div class="tree-node final">Nihai Parça: ${globalParcaKodu}<br><span style="font-size:14px; font-weight:normal;">Net Ağırlık: ${sonNetKg} KG | Toplam Süre: ${toplamSure.toFixed(1)} Dk</span></div>`;
             treeContainer.innerHTML = treeHTML;
         }
 
         dropZone.addEventListener('click', () => fileInput.click());
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-        
-        // HATA DÜZELTİLDİ: dragleave fonksiyonundaki yazım hatası ve fazlalık parantez giderildi.
         dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('dragover'); });
-        
         dropZone.addEventListener('drop', (e) => {
             e.preventDefault(); dropZone.classList.remove('dragover');
             if (e.dataTransfer.files.length > 0) dosyayiIsle(e.dataTransfer.files[0]);
@@ -484,7 +481,7 @@
 
         async function apiyeGonder(file, targetCode) {
             statusMessage.style.color = "#333";
-            statusMessage.innerText = "Yapay Zeka analiz ediyor...";
+            statusMessage.innerText = "Yapay Zeka analiz ediyor... Lütfen Bekleyin.";
             loader.style.display = "block";
             infoCard.style.display = "none";
             printBtn.style.display = "none";
@@ -502,9 +499,7 @@
             const formData = new FormData();
             formData.append("file", file);
             formData.append("target_code", targetCode); 
-            
-            // HATA DÜZELTİLDİ: bm_company_memory anahtarı HTML genelinde eşitlendi.
-            const currentMemory = localStorage.getItem('bm_company_memory') || "";
+            const currentMemory = localStorage.getItem('ezel_company_memory') || "";
             formData.append("sirket_hafizasi", currentMemory);
 
             try {
@@ -521,6 +516,11 @@
 
                     globalProsesler = prosesListesi; 
                     globalThumbnail = result.thumbnail || ""; 
+                    
+                    if (result.token !== undefined) {
+                        document.getElementById('lblToken').innerText = `🪙 Token: ${result.token}`;
+                        document.getElementById('lblMaliyet').innerText = `💵 Maliyet: ${result.maliyet}`;
+                    }
                     
                     printBtn.style.display = "inline-block"; 
                     excelBtn.style.display = "inline-block"; 
@@ -551,7 +551,6 @@
                     });
 
                     gorselleriGuncelle();
-                    
                     saveToArchive(globalParcaKodu, globalParcaAciklama, sonHesaplananSure, globalProsesler, globalThumbnail);
 
                 } else {
