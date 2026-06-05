@@ -13,24 +13,27 @@
             --accent-color: #27ae60; --bg-color: #ecf0f1; --box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
         body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); padding: 15px; margin: 0; color: var(--primary-color); }
-        
-        /* GİRİŞ EKRANI STİLİ */
-        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: var(--primary-color); z-index: 99999; display: flex; justify-content: center; align-items: center; }
-        .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; width: 300px; }
-        .login-box h2 { margin-top: 0; color: var(--primary-color); }
-        
         .header { text-align: center; margin-bottom: 20px; position: relative;}
+        
         .action-buttons { position: absolute; right: 20px; top: 10px; display: flex; gap: 10px; }
         .btn { color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
         .btn-print { background-color: var(--primary-color); }
+        .btn-print:hover { background-color: #1a252f; }
         .btn-excel { background-color: #217346; } 
+        .btn-excel:hover { background-color: #185c37; }
         .btn-edit { background-color: #f39c12; }
+        .btn-edit:hover { background-color: #d68910; }
         
-        .memory-btn { position: absolute; left: 20px; top: 10px; background-color: #8e44ad; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; display: none;}
-        .archive-btn { position: absolute; left: 195px; top: 10px; background-color: #34495e; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; display: none;}
+        .memory-btn { position: absolute; left: 20px; top: 10px; background-color: #8e44ad; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;}
+        .memory-btn:hover { background-color: #732d91; }
         
+        .archive-btn { position: absolute; left: 195px; top: 10px; background-color: #34495e; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;}
+        .archive-btn:hover { background-color: #1a252f; }
+        
+        /* YENİ ARŞİV TASARIMI (MİNİ GÖRSELLİ) */
         .archive-list { max-height: 450px; overflow-y: auto; text-align: left; margin-top: 15px; padding-right: 10px;}
         .archive-item { background: #f8f9fa; border-left: 4px solid var(--primary-color); padding: 10px 15px; margin-bottom: 12px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; display: flex; gap: 15px; align-items: center;}
+        .archive-item:hover { transform: translateX(5px); }
         .archive-thumb { width: 70px; height: 70px; object-fit: contain; border-radius: 4px; border: 1px solid #bdc3c7; background: white; flex-shrink: 0;}
         .archive-content { flex-grow: 1; overflow: hidden;}
         .archive-date { font-size: 11px; color: #7f8c8d; margin-bottom: 3px; }
@@ -41,21 +44,35 @@
         .main-wrapper { max-width: 98%; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         .top-container { display: flex; gap: 20px; align-items: stretch; }
         .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: var(--box-shadow); display: flex; flex-direction: column; }
-        .col-left { flex: 0 0 30%; } .col-mid { flex: 0 0 45%; overflow-x: auto; } .col-right { flex: 1; }      
+        
+        .col-left { flex: 0 0 30%; } 
+        .col-mid { flex: 0 0 45%; overflow-x: auto; }  
+        .col-right { flex: 1; }      
+        
         .bottom-container { background: white; padding: 20px; border-radius: 12px; box-shadow: var(--box-shadow); text-align: center; }
 
-        .drop-zone { border: 2px dashed #bdc3c7; border-radius: 8px; padding: 15px; text-align: center; color: #95a5a6; cursor: pointer; margin-bottom: 15px; background: #f8f9fa;}
-        #previewContainer { flex-grow: 1; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: none; background: #333; min-height: 600px; display: flex; align-items: center; justify-content: center;}
-        #previewContainer img, #previewContainer iframe { width: 100%; height: 100%; object-fit: contain; }
+        .drop-zone { border: 2px dashed #bdc3c7; border-radius: 8px; padding: 15px; text-align: center; color: #95a5a6; cursor: pointer; transition: 0.3s; margin-bottom: 15px; background: #f8f9fa;}
+        .drop-zone.dragover { border-color: var(--accent-color); background-color: #e8f8f5; }
+        .drop-zone input { display: none; }
         
+        #previewContainer { flex-grow: 1; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: none; background: #333; min-height: 600px; position: relative; display: flex; align-items: center; justify-content: center;}
+        #previewContainer img, #previewContainer iframe { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1;}
+
+        .info-card { background: #e8f8f5; border-left: 5px solid var(--accent-color); padding: 15px; margin-bottom: 20px; border-radius: 4px; display: none; }
+        .info-card h2 { margin: 0 0 5px 0; font-size: 20px; color: #2c3e50; }
+        .info-card p { margin: 3px 0; color: #34495e; font-weight: bold; }
+        .total-time-highlight { color: #d35400 !important; font-size: 16px; margin-top: 8px !important; }
+
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
         th { background-color: var(--primary-color); color: white; white-space: nowrap;}
+        tr:hover { background-color: #f5f6fa; }
         
-        .editable-cell { background-color: #fff9c4 !important; border: 1px dashed #f39c12 !important; }
-        
+        .editable-cell { background-color: #fff9c4 !important; border: 1px dashed #f39c12 !important; outline: none; transition: 0.2s;}
+        .editable-cell:focus { background-color: #fff !important; border: 2px solid #e67e22 !important; }
+
         .timeline { margin-top: 10px; padding-left: 20px; border-left: 3px solid var(--accent-color); }
-        .timeline-item { position: relative; margin-bottom: 25px; padding-left: 20px; }
+        .timeline-item { position: relative; margin-bottom: 25px; padding-left: 20px; transition: 0.3s;}
         .timeline-item::before { content: ''; position: absolute; left: -28px; top: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--accent-color); border: 4px solid white; box-shadow: 0 0 0 2px var(--accent-color); }
         .timeline-title { font-weight: bold; color: var(--primary-color); font-size: 16px; margin-bottom: 5px;}
         .timeline-desc { font-size: 13px; color: #34495e; font-style: italic; margin-bottom: 4px;}
@@ -63,41 +80,56 @@
         .timeline-badge { display: inline-block; background: #f39c12; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-top: 5px; font-weight: bold;}
 
         .tree-wrapper { display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
-        .tree-node { background: var(--primary-color); color: white; padding: 12px 25px; border-radius: 8px; border: 2px solid #1abc9c; min-width: 250px; text-align: center; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+        .tree-node { background: var(--primary-color); color: white; padding: 12px 25px; border-radius: 8px; border: 2px solid #1abc9c; min-width: 250px; text-align: center; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; z-index: 2;}
         .tree-node.raw { background: #e67e22; border-color: #d35400; }
         .tree-node.final { background: var(--accent-color); border-color: #2ecc71; font-size: 18px; padding: 15px 30px;}
-        .tree-line { width: 3px; height: 30px; background: #bdc3c7; }
+        .tree-line { width: 3px; height: 30px; background: #bdc3c7; z-index: 1;}
 
         .loader { display: none; border: 5px solid #f3f3f3; border-top: 5px solid var(--accent-color); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
-        
+        .rotate-btn { background-color: var(--accent-color); color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; display: none; z-index: 20; position: relative;}
+        .rotate-btn:hover { background-color: #219653; }
+
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 500px; max-width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .modal-input { width: 90%; padding: 12px; border: 2px solid #bdc3c7; border-radius: 8px; font-size: 16px; margin: 15px 0; font-weight: bold; text-align: center; outline: none;}
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 500px; max-width: 90%; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-input { width: 90%; padding: 12px; border: 2px solid #bdc3c7; border-radius: 8px; font-size: 16px; margin: 15px 0; font-weight: bold; text-align: center; outline: none; transition: 0.3s; }
+        .modal-input:focus { border-color: var(--accent-color); }
         .modal-btn { background: var(--accent-color); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 16px; margin-top: 10px;}
+        .modal-btn:hover { background: #219653; }
         
-        .memory-textarea { width: 100%; height: 150px; padding: 10px; border: 2px solid #9b59b6; border-radius: 8px; resize: vertical; font-family: monospace;}
+        .memory-textarea { width: 100%; height: 150px; padding: 10px; border: 2px solid #9b59b6; border-radius: 8px; resize: vertical; font-family: monospace; font-size: 14px; text-align: left;}
         .memory-visual-board { width: 100%; height: 100px; border: 2px dashed #bdc3c7; border-radius: 8px; margin-top: 15px; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative;}
         .memory-visual-board img { max-width: 100%; max-height: 100%; }
+
+        @media print {
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            @page { size: A4 portrait; margin: 10mm; }
+            @page :first { size: A4 portrait; margin: 0mm; }
+            body { background: white; padding: 0; }
+            .header, .drop-zone, .action-buttons, .memory-btn, .archive-btn, .loader, #statusMessage, .rotate-btn { display: none !important; }
+            .panel, .bottom-container { box-shadow: none; border: none; padding: 0; }
+            .top-container { display: block; }
+            .main-wrapper { max-width: 100%; gap: 0; }
+            .col-left { width: 100%; height: 98vh; page-break-after: always; break-after: page; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center;}
+            .col-left h3 { display: none; } 
+            #previewContainer { display: flex !important; width: 100%; height: 100%; border: none; background: transparent; }
+            #previewContainer img, #previewContainer iframe { object-fit: contain; width: 100%; height: 100%; }
+            .col-mid { width: 100%; page-break-inside: avoid; margin-bottom: 30px; padding-top: 20px;}
+            .col-right { width: 100%; page-break-inside: avoid; margin-bottom: 30px; }
+            .bottom-container { width: 100%; page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body>
 
-    <div class="login-overlay" id="loginOverlay">
-        <div class="login-box">
-            <h2>BM MADEN - Giriş</h2>
-            <input type="text" id="username" class="modal-input" placeholder="Kullanıcı Adı">
-            <input type="password" id="password" class="modal-input" placeholder="Şifre">
-            <button class="modal-btn" onclick="checkLogin()">GİRİŞ YAP</button>
-        </div>
-    </div>
-
     <div class="modal-overlay" id="archiveModal">
         <div class="modal-content" style="width: 650px;">
             <h2 style="margin-top:0; color:var(--primary-color);">🗄️ Geçmiş Analiz Arşivi</h2>
+            <p style="color:#7f8c8d; font-size:14px; text-align: left;">Daha önce analiz edilen parçaların listesi (Son 50 kayıt).</p>
             <div class="archive-list" id="archiveList"></div>
             <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="modal-btn" style="background-color: #bdc3c7; color: #333;" onclick="document.getElementById('archiveModal').style.display='none'">Kapat</button>
-                <button class="modal-btn" style="background-color: #e74c3c;" onclick="clearArchive()">🗑️ Temizle</button>
+                <button class="modal-btn" style="background-color: #e74c3c;" onclick="clearArchive()">🗑️ Arşivi Temizle</button>
             </div>
         </div>
     </div>
@@ -105,137 +137,434 @@
     <div class="modal-overlay" id="memoryModal">
         <div class="modal-content" style="width: 600px;">
             <h2 style="margin-top:0; color:#8e44ad;">🧠 BM MADEN Şirket Hafızası</h2>
-            <textarea id="memoryInput" class="memory-textarea" placeholder="Kurallarınızı buraya yazın..."></textarea>
-            <div id="visualBoard" class="memory-visual-board" contenteditable="true"><span>Görsel yapıştır (Ctrl+V)</span></div>
-            <button class="modal-btn" style="background-color: #8e44ad;" onclick="saveMemory()">💾 Kaydet</button>
+            <p style="color:#7f8c8d; font-size:14px; text-align: left;">Sistem sizin yazdığınız bu kuralları her analizde dikkate alacaktır.</p>
+            <textarea id="memoryInput" class="memory-textarea" placeholder="Örn:&#10;- M8'den büyük vidalarda fireyi %10 olarak hesapla.&#10;- Isıl işlem sürelerini en az 45 dk olarak belirle."></textarea>
+            <p style="color:#7f8c8d; font-size:14px; text-align: left; margin-bottom: 5px;">Görsel Veri (Kopyala & Yapıştır - Önizleme):</p>
+            <div id="visualBoard" class="memory-visual-board" contenteditable="true" data-text="Bir resim kopyalayıp buraya yapıştırın (Ctrl+V)">
+                <span style="color:#bdc3c7; pointer-events: none;">Görseli buraya yapıştırın (Ctrl+V)</span>
+            </div>
+            <button class="modal-btn" style="background-color: #8e44ad;" onclick="saveMemory()">💾 Hafızayı Kaydet & Kapat</button>
             <button class="modal-btn" style="background-color: #bdc3c7; color: #333;" onclick="document.getElementById('memoryModal').style.display='none'">İptal</button>
         </div>
     </div>
 
     <div class="modal-overlay" id="variantModal">
         <div class="modal-content">
-            <h2 style="margin-top:0; color:var(--primary-color);">Tablolu Resim</h2>
-            <input type="text" id="variantInput" class="modal-input" placeholder="Hedef Kod">
-            <button class="modal-btn" onclick="startAnalysis()">🚀 Başlat</button>
+            <h2 style="margin-top:0; color:var(--primary-color);">Tablolu Resim Kontrolü</h2>
+            <p style="color:#7f8c8d; font-size:14px; margin-bottom:20px;">Eğer yüklediğiniz teknik resimde bir <b>ölçü/kod tablosu</b> varsa, hedef kodu buraya yazın.</p>
+            <input type="text" id="variantInput" class="modal-input" placeholder="Örn: 10000028 veya M8x50">
+            <p style="color:#95a5a6; font-size:12px; margin-top:0;">(Tek bir parça ise kutuyu boş bırakıp devam edebilirsiniz.)</p>
+            <button class="modal-btn" onclick="startAnalysis()">🚀 Yapay Zeka Analizini Başlat</button>
         </div>
     </div>
 
     <div class="header">
-        <button class="memory-btn" id="memBtn" onclick="openMemoryModal()">🧠 Hafıza</button>
-        <button class="archive-btn" id="arcBtn" onclick="openArchiveModal()">🗄️ Arşiv</button>
-        <h1>CANIAS Otonom Proses Planlama</h1>
+        <button class="memory-btn" onclick="openMemoryModal()">🧠 Şirket Hafızası</button>
+        <button class="archive-btn" onclick="openArchiveModal()">🗄️ Arşiv</button>
+        <h1>CANIAS Otonom Proses ve Ürün Ağacı Planlama</h1>
         <div class="action-buttons">
             <button id="editBtn" class="btn btn-edit" onclick="toggleEdit()">✏️ Düzenle</button>
-            <button id="excelBtn" class="btn btn-excel" onclick="excelIndir()">📊 Excel</button>
-            <button id="printBtn" class="btn btn-print" onclick="window.print()">🖨️ PDF</button>
+            <button id="excelBtn" class="btn btn-excel" onclick="excelIndir()">📊 Excel İndir</button>
+            <button id="printBtn" class="btn btn-print" onclick="window.print()">🖨️ PDF Kaydet / Yazdır</button>
         </div>
     </div>
 
     <div class="main-wrapper">
         <div class="top-container">
             <div class="panel col-left">
-                <div class="drop-zone" id="dropZone"><p>Dosya Yükle</p><input type="file" id="fileInput" accept=".pdf, .png, .jpg, .jpeg"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin:0;">1. Teknik Resim</h3>
+                    <button id="rotateBtn" class="rotate-btn" onclick="resmiDondur()">🔄 Ekranda Döndür</button>
+                </div>
+                <div class="drop-zone" id="dropZone"><p>Dosyayı Sürükleyin</p><input type="file" id="fileInput" accept=".pdf, .png, .jpg, .jpeg"></div>
                 <div id="previewContainer"></div>
                 <div class="loader" id="loader"></div>
                 <p id="statusMessage" style="text-align: center; font-weight: bold;"></p>
             </div>
             
             <div class="panel col-mid">
-                <h3>Operasyon Rota (ROUT01)</h3>
+                <h3 style="margin-top:0;">2. Operasyon Rota Verileri (ROUT01)</h3>
+                <div class="info-card" id="infoCard"><h2 id="lblParcaKodu">KOD: -</h2><p id="lblParcaAciklamasi">AÇIKLAMA: -</p><p id="lblToplamSure" class="total-time-highlight">TOPLAM SÜRE: -</p></div>
                 <div style="overflow-x:auto;">
-                    <table>
-                        <thead><tr><th>KOD</th><th>KISA</th><th>UZUN</th><th>BRÜT</th><th>NET</th><th>FİRE</th><th>SÜRE</th></tr></thead>
-                        <tbody id="tableBody"></tbody>
+                    <table id="prosesTable">
+                        <thead><tr><th>KOD</th><th>KISA AÇIKLAMA (125)</th><th>UZUN AÇIKLAMA (500)</th><th>BRÜT</th><th>NET</th><th>FİRE</th><th>SÜRE(DK)</th></tr></thead>
+                        <tbody id="tableBody"><tr><td colspan="7" style="text-align: center; padding: 30px; color:#7f8c8d;">Sistem hazır...</td></tr></tbody>
                         <tfoot id="tableFoot"></tfoot>
                     </table>
                 </div>
             </div>
             
             <div class="panel col-right">
-                <h3>Görsel Akış</h3>
+                <h3 style="margin-top:0;">3. Görsel İşlem Akışı</h3>
                 <div class="timeline" id="timelineContainer"></div>
             </div>
         </div>
         <div class="bottom-container">
-            <h3>Ürün Ağacı (BOMT01)</h3>
+            <h3>4. Görsel Ürün Ağacı (BOMT01)</h3>
             <div class="tree-wrapper" id="treeContainer"></div>
         </div>
     </div>
 
     <script>
-        // GİRİŞ KONTROLÜ
-        function checkLogin() {
-            const u = document.getElementById('username').value.toUpperCase();
-            const p = document.getElementById('password').value.toUpperCase();
-            if ((u === "CAGLAR" && p === "CAGLAR") || (u === "TUNC" && p === "TUNC")) {
-                document.getElementById('loginOverlay').style.display = 'none';
-                sessionStorage.setItem('isLoggedIn', 'true');
-                showControls();
-            } else {
-                alert("Hatalı Giriş!");
-            }
-        }
-
-        function showControls() {
-            document.getElementById('memBtn').style.display = "block";
-            document.getElementById('arcBtn').style.display = "block";
-            document.getElementById('editBtn').style.display = "inline-block";
-            document.getElementById('excelBtn').style.display = "inline-block";
-            document.getElementById('printBtn').style.display = "inline-block";
-        }
-
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
-            document.getElementById('loginOverlay').style.display = 'none';
-            showControls();
-        }
-
-        // --- DİĞER FONKSİYONLAR (Arşiv, Hafıza, API) ---
+        // --- ARŞİV SİSTEMİ GÜNCELLEMESİ (GÖRSELLİ) ---
         function saveToArchive(kodu, aciklama, sure, prosesler, base64Thumb) {
             let archive = JSON.parse(localStorage.getItem('bm_archive') || '[]');
             let ops = prosesler.map(p => p.canias_kodu ? p.canias_kodu.substring(0,2) : "OP").join(" ➔ ");
             let now = new Date();
             let dateStr = now.toLocaleDateString('tr-TR') + " " + now.toLocaleTimeString('tr-TR');
-            archive.unshift({ tarih: dateStr, kodu: kodu, aciklama: aciklama, sure: sure.toFixed(1), ops: ops, thumb: base64Thumb });
+            
+            let newEntry = { 
+                tarih: dateStr, 
+                kodu: kodu, 
+                aciklama: aciklama, 
+                sure: sure.toFixed(1), 
+                ops: ops,
+                thumb: base64Thumb // YENİ: Görsel verisini de kaydet
+            };
+            archive.unshift(newEntry); 
             if(archive.length > 50) archive.pop(); 
-            localStorage.setItem('bm_archive', JSON.stringify(archive));
+            
+            // Kota dolma riskine karşı try-catch
+            try {
+                localStorage.setItem('bm_archive', JSON.stringify(archive));
+            } catch (e) {
+                console.warn("Yerel hafıza doldu, en eski kayıtlar siliniyor...");
+                archive.splice(-5); // Son 5'i silip yer aç
+                localStorage.setItem('bm_archive', JSON.stringify(archive));
+            }
         }
 
         function openArchiveModal() {
             let archive = JSON.parse(localStorage.getItem('bm_archive') || '[]');
             let listDiv = document.getElementById('archiveList');
-            listDiv.innerHTML = archive.length === 0 ? "<p style='text-align:center;'>Kayıt yok.</p>" : "";
-            archive.forEach(item => {
-                let thumbHtml = item.thumb ? `<img src="data:image/jpeg;base64,${item.thumb}" class="archive-thumb">` : `<div class="archive-thumb">YOK</div>`;
-                listDiv.innerHTML += `<div class="archive-item">${thumbHtml}<div class="archive-content"><div class="archive-header-text"><span>${item.kodu}</span><span>⏱️${item.sure} Dk</span></div><div class="archive-desc">${item.aciklama}</div><div class="archive-ops">${item.ops}</div></div></div>`;
-            });
+            listDiv.innerHTML = "";
+            
+            if(archive.length === 0) {
+                listDiv.innerHTML = "<p style='text-align:center; color:#7f8c8d;'>Henüz arşivlenmiş bir analiz yok.</p>";
+            } else {
+                archive.forEach(item => {
+                    // Eğer thumb (mini görsel) varsa img etiketi, yoksa boş gri kutu göster
+                    let thumbHtml = item.thumb 
+                        ? `<img src="data:image/jpeg;base64,${item.thumb}" class="archive-thumb" alt="Parça Görseli">` 
+                        : `<div class="archive-thumb" style="display:flex; align-items:center; justify-content:center; background:#ecf0f1; font-size:10px; color:#95a5a6; text-align:center;">Görsel Yok</div>`;
+                        
+                    listDiv.innerHTML += `
+                        <div class="archive-item">
+                            ${thumbHtml}
+                            <div class="archive-content">
+                                <div class="archive-header-text"><span>KOD: ${item.kodu}</span> <span>⏱️ ${item.sure} Dk</span></div>
+                                <div class="archive-date">🗓️ ${item.tarih}</div>
+                                <div class="archive-desc">${item.aciklama}</div>
+                                <div class="archive-ops">Rota: ${item.ops}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
             document.getElementById('archiveModal').style.display = 'flex';
         }
 
-        function clearArchive() { if(confirm("Temizle?")) { localStorage.removeItem('bm_archive'); openArchiveModal(); } }
+        function clearArchive() {
+            if(confirm("Tüm geçmiş arşivi silmek istediğinize emin misiniz?")) {
+                localStorage.removeItem('bm_archive');
+                openArchiveModal();
+            }
+        }
+        // ------------------------------------------
+
+        const memoryModal = document.getElementById('memoryModal');
+        const memoryInput = document.getElementById('memoryInput');
+        const visualBoard = document.getElementById('visualBoard');
 
         window.onload = () => {
             const savedMemory = localStorage.getItem('bm_company_memory');
-            if (savedMemory) document.getElementById('memoryInput').value = savedMemory;
+            if (savedMemory) memoryInput.value = savedMemory;
         };
 
-        function openMemoryModal() { document.getElementById('memoryModal').style.display = 'flex'; }
+        function openMemoryModal() { memoryModal.style.display = 'flex'; }
         function saveMemory() {
-            localStorage.setItem('bm_company_memory', document.getElementById('memoryInput').value);
-            document.getElementById('memoryModal').style.display = 'none';
+            localStorage.setItem('bm_company_memory', memoryInput.value);
+            memoryModal.style.display = 'none';
+            alert("Şirket Hafızası Güncellendi!");
         }
 
-        document.getElementById('visualBoard').addEventListener('paste', (e) => {
+        visualBoard.addEventListener('paste', (e) => {
             e.preventDefault();
-            const item = e.clipboardData.items[0];
-            if (item.kind === 'file') {
-                const reader = new FileReader();
-                reader.onload = (event) => { document.getElementById('visualBoard').innerHTML = `<img src="${event.target.result}">`; };
-                reader.readAsDataURL(item.getAsFile());
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (let index in items) {
+                const item = items[index];
+                if (item.kind === 'file' && item.type.startsWith('image/')) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = (event) => { visualBoard.innerHTML = `<img src="${event.target.result}">`; };
+                    reader.readAsDataURL(blob);
+                }
             }
         });
 
-        // Diğer fonksiyonlar (ApiyeGonder, ToggleEdit vb.) aynen devam edebilir...
-        // Kod çok uzun olmasın diye buraya özetini koydum, önceki kodunuzdaki fonksiyonları buraya yapıştırın.
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const loader = document.getElementById('loader');
+        const statusMessage = document.getElementById('statusMessage');
+        const tableBody = document.getElementById('tableBody');
+        const tableFoot = document.getElementById('tableFoot');
+        const previewContainer = document.getElementById('previewContainer');
+        const infoCard = document.getElementById('infoCard');
+        const timelineContainer = document.getElementById('timelineContainer');
+        const treeContainer = document.getElementById('treeContainer');
+        
+        const printBtn = document.getElementById('printBtn');
+        const excelBtn = document.getElementById('excelBtn');
+        const rotateBtn = document.getElementById('rotateBtn');
+        const editBtn = document.getElementById('editBtn');
+
+        let currentRotation = 0; 
+        let globalExcelData = [];
+        let globalParcaKodu = "Proses";
+        let globalParcaAciklama = "-";
+        let pendingFile = null; 
+        let globalProsesler = []; 
+        let isEditing = false;
+        let sonHesaplananSure = 0;
+        let globalThumbnail = ""; // YENİ: Düzenleme sonrası arşivlemek için
+
+        function toggleEdit() {
+            if (globalProsesler.length === 0) return;
+            const rows = tableBody.querySelectorAll('tr');
+
+            if (!isEditing) {
+                rows.forEach(row => {
+                    for(let i=0; i<7; i++) {
+                        row.cells[i].contentEditable = "true";
+                        row.cells[i].classList.add("editable-cell");
+                    }
+                });
+                editBtn.innerHTML = "💾 Kaydet & Güncelle";
+                editBtn.style.backgroundColor = "#e67e22";
+                isEditing = true;
+            } else {
+                rows.forEach((row, index) => {
+                    for(let i=0; i<7; i++) {
+                        row.cells[i].contentEditable = "false";
+                        row.cells[i].classList.remove("editable-cell");
+                    }
+                    if(globalProsesler[index]) {
+                        globalProsesler[index].canias_kodu = row.cells[0].innerText.trim();
+                        globalProsesler[index].kisa_aciklama = row.cells[1].innerText.trim();
+                        globalProsesler[index].uzun_aciklama = row.cells[2].innerText.trim();
+                        globalProsesler[index].brut_kg = row.cells[3].innerText.trim();
+                        globalProsesler[index].net_kg = row.cells[4].innerText.trim();
+                        globalProsesler[index].fire_kg = row.cells[5].innerText.trim();
+                        globalProsesler[index].sure_dk = row.cells[6].innerText.trim();
+                    }
+                });
+
+                editBtn.innerHTML = "✏️ Düzenle";
+                editBtn.style.backgroundColor = "#f39c12";
+                isEditing = false;
+                gorselleriGuncelle();
+                
+                // Arşive mini görselle beraber kaydet
+                saveToArchive(globalParcaKodu + " (Düzeltilmiş)", globalParcaAciklama, sonHesaplananSure, globalProsesler, globalThumbnail);
+            }
+        }
+
+        function gorselleriGuncelle() {
+            timelineContainer.innerHTML = "";
+            treeContainer.innerHTML = "";
+            globalExcelData = [];
+            tableFoot.innerHTML = "";
+            
+            let toplamSure = 0;
+            let ilkBrutKg = globalProsesler[0]?.brut_kg || "?";
+            let sonNetKg = globalProsesler[globalProsesler.length - 1]?.net_kg || "?";
+
+            let treeHTML = `<div class="tree-node raw">Hammadde (Tel/Çubuk)<br><span style="font-size:12px; font-weight:normal;">Brüt: ${ilkBrutKg} KG</span></div>`;
+
+            globalExcelData.push(["BM MADEN MAKINE - CANIAS PROSES PLANI"]);
+            globalExcelData.push([]);
+            globalExcelData.push(["PARÇA KODU:", globalParcaKodu]);
+            globalExcelData.push(["AÇIKLAMA:", globalParcaAciklama]);
+            globalExcelData.push([]);
+            globalExcelData.push(["CANIAS KODU", "KISA AÇIKLAMA", "UZUN AÇIKLAMA", "BRÜT (KG)", "NET (KG)", "FİRE (KG)", "SÜRE (DK)"]);
+
+            globalProsesler.forEach((proses, index) => {
+                let sure = parseFloat(proses.sure_dk) || 0;
+                toplamSure += sure;
+
+                globalExcelData.push([ proses.canias_kodu || '-', proses.kisa_aciklama || '-', proses.uzun_aciklama || '-', proses.brut_kg || '-', proses.net_kg || '-', proses.fire_kg || '-', proses.sure_dk || '-' ]);
+
+                const opKisaAd = (proses.kisa_aciklama || "").split(':')[0];
+                timelineContainer.innerHTML += `
+                    <div class="timeline-item" id="timeline-${index}">
+                        <div class="timeline-title">${index + 1}. ${proses.canias_kodu}</div>
+                        <div class="timeline-desc"><strong>ERP:</strong> ${proses.kisa_aciklama}</div>
+                        <div class="timeline-long-desc"><strong>Operatör Notu:</strong> ${proses.uzun_aciklama}</div>
+                        <div class="timeline-badge">Süre: ${proses.sure_dk} Dk</div>
+                    </div>
+                `;
+
+                treeHTML += `<div class="tree-line"></div>`;
+                treeHTML += `<div class="tree-node">${proses.canias_kodu}<br><span style="font-size:12px; font-weight:normal;">Fire: ${proses.fire_kg} KG</span></div>`;
+            });
+
+            sonHesaplananSure = toplamSure;
+
+            const trToplam = document.createElement("tr");
+            trToplam.style.backgroundColor = "#e8f8f5";
+            trToplam.innerHTML = `
+                <td colspan="6" style="text-align:right; font-weight:bold; color:var(--primary-color);">TOPLAM İMALAT SÜRESİ:</td>
+                <td style="font-weight:bold; color:#d35400; font-size: 16px;">${toplamSure.toFixed(1)} Dk</td>
+            `;
+            tableFoot.appendChild(trToplam);
+            
+            document.getElementById('lblToplamSure').innerText = `⏱️ TOPLAM SÜRE: ${toplamSure.toFixed(1)} Dakika`;
+            
+            globalExcelData[3] = ["TOPLAM SÜRE:", `${toplamSure.toFixed(1)} Dakika`]; 
+            globalExcelData.push([]);
+            globalExcelData.push(["", "", "", "", "", "TOPLAM SÜRE:", `${toplamSure.toFixed(1)} Dk`]);
+
+            treeHTML += `<div class="tree-line"></div>`;
+            treeHTML += `<div class="tree-node final">Nihai Parça: ${globalParcaKodu}<br><span style="font-size:14px; font-weight:normal;">Net Ağırlık: ${sonNetKg} KG | Toplam Süre: ${toplamSure.toFixed(1)} Dk</span></div>`;
+            treeContainer.innerHTML = treeHTML;
+        }
+
+        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault(); dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) dosyayiIsle(e.dataTransfer.files[0]);
+        });
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) dosyayiIsle(e.target.files[0]);
+        });
+
+        function dosyayiIsle(file) {
+            previewContainer.style.display = "block";
+            previewContainer.innerHTML = "";
+            currentRotation = 0; 
+            const fileURL = URL.createObjectURL(file);
+            
+            if(file.type === "application/pdf") {
+                previewContainer.innerHTML = `<iframe id="docFrame" src="${fileURL}#toolbar=0" frameborder="0"></iframe>`;
+            } else {
+                previewContainer.innerHTML = `<img id="docImage" src="${fileURL}" alt="Önizleme">`;
+            }
+            
+            pendingFile = file;
+            document.getElementById('variantInput').value = ""; 
+            document.getElementById('variantModal').style.display = "flex"; 
+            document.getElementById('variantInput').focus(); 
+        }
+
+        function startAnalysis() {
+            document.getElementById('variantModal').style.display = "none"; 
+            const targetCode = document.getElementById('variantInput').value; 
+            apiyeGonder(pendingFile, targetCode); 
+        }
+
+        document.getElementById('variantInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') startAnalysis();
+        });
+
+        function resmiDondur() {
+            currentRotation = (currentRotation + 90) % 360;
+            const element = document.getElementById('docImage') || document.getElementById('docFrame');
+            if(element) { element.style.transform = `rotate(${currentRotation}deg)`; }
+        }
+
+        function excelIndir() {
+            if (globalExcelData.length === 0) return;
+            let ws = XLSX.utils.aoa_to_sheet(globalExcelData);
+            let wb = XLSX.utils.book_new();
+            ws['!cols'] = [{wch:15}, {wch:30}, {wch:50}, {wch:10}, {wch:10}, {wch:10}, {wch:12}];
+            XLSX.utils.book_append_sheet(wb, ws, "Proses_Rotasi");
+            XLSX.writeFile(wb, `${globalParcaKodu}_Canias_Proses.xlsx`);
+        }
+
+        async function apiyeGonder(file, targetCode) {
+            statusMessage.style.color = "#333";
+            statusMessage.innerText = "Yapay Zeka analiz ediyor...";
+            loader.style.display = "block";
+            infoCard.style.display = "none";
+            printBtn.style.display = "none";
+            excelBtn.style.display = "none";
+            rotateBtn.style.display = "none";
+            editBtn.style.display = "none";
+            tableBody.innerHTML = "";
+            tableFoot.innerHTML = "";
+            timelineContainer.innerHTML = "";
+            treeContainer.innerHTML = "";
+            globalExcelData = []; 
+            globalProsesler = [];
+            globalThumbnail = "";
+            
+            const formData = new FormData();
+            formData.append("file", file);
+            formData.append("target_code", targetCode); 
+            const currentMemory = localStorage.getItem('bm_company_memory') || "";
+            formData.append("sirket_hafizasi", currentMemory);
+
+            try {
+                const response = await fetch("/api/proses-olustur", { method: "POST", body: formData });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    statusMessage.innerText = "";
+                    let prosesListesi = result.veri && result.veri.prosesler ? result.veri.prosesler : (result.prosesler || []);
+                    
+                    if(prosesListesi.length === 0) {
+                        statusMessage.innerText = "Liste bulunamadı."; return;
+                    }
+
+                    globalProsesler = prosesListesi; 
+                    globalThumbnail = result.thumbnail || ""; // YENİ: Python'dan gelen küçük resmi sakla
+                    
+                    printBtn.style.display = "inline-block"; 
+                    excelBtn.style.display = "inline-block"; 
+                    rotateBtn.style.display = "inline-block"; 
+                    editBtn.style.display = "inline-block"; 
+
+                    globalParcaKodu = result.veri ? (result.veri.parca_kodu || '-') : '-';
+                    globalParcaAciklama = result.veri ? (result.veri.parca_aciklamasi || '-') : '-';
+
+                    if (result.veri) {
+                        document.getElementById('lblParcaKodu').innerText = `KOD: ${globalParcaKodu}`;
+                        document.getElementById('lblParcaAciklamasi').innerText = `AÇIKLAMA: ${globalParcaAciklama}`;
+                        infoCard.style.display = "block";
+                    }
+
+                    globalProsesler.forEach((proses, index) => {
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td style="font-weight:bold; color:var(--primary-color);">${proses.canias_kodu || '-'}</td>
+                            <td>${proses.kisa_aciklama || '-'}</td>
+                            <td>${proses.uzun_aciklama || '-'}</td>
+                            <td style="color:#e67e22; font-weight:bold;">${proses.brut_kg || '-'}</td>
+                            <td style="color:#27ae60; font-weight:bold;">${proses.net_kg || '-'}</td>
+                            <td style="color:#c0392b;">${proses.fire_kg || '-'}</td>
+                            <td style="font-weight:bold;">${proses.sure_dk || '-'}</td>
+                        `;
+                        tableBody.appendChild(tr);
+                    });
+
+                    gorselleriGuncelle();
+                    
+                    // YENİ: Arşive Kaydederken Mini Görseli de Gönder
+                    saveToArchive(globalParcaKodu, globalParcaAciklama, sonHesaplananSure, globalProsesler, globalThumbnail);
+
+                } else {
+                    statusMessage.style.color = "red";
+                    statusMessage.innerText = `Hata: ${result.detail}`;
+                }
+            } catch (error) {
+                statusMessage.style.color = "red";
+                statusMessage.innerText = "Bağlantı Hatası: Sunucu çalışıyor mu?";
+            } finally {
+                loader.style.display = "none";
+            }
+        }
     </script>
 </body>
 </html>
