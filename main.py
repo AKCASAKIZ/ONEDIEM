@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import fitz 
 import io
-import base64 # YENİ: Görseli metne çevirmek için
+import base64 
 from PIL import Image
 import google.generativeai as genai
 import json
@@ -18,7 +18,7 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
-# İSİM EZEL KALIP OLARAK GÜNCELLENDİ
+# EZEL KALIP PLANLAMA-ÜRETİM API
 app = FastAPI(title="EZEL KALIP PLANLAMA-ÜRETİM API")
 
 app.add_middleware(
@@ -60,16 +60,13 @@ async def proses_olustur(
         else:
             raise HTTPException(status_code=400, detail="Lütfen PDF veya resim yükleyin.")
 
-        # --- YENİ: MİNİ GÖRSEL (THUMBNAIL) OLUŞTURMA ---
+        # MİNİ GÖRSEL (THUMBNAIL) OLUŞTURMA
         thumb_img = analiz_resmi.copy()
-        thumb_img.thumbnail((150, 150)) # Maksimum 150x150 piksel yap
+        thumb_img.thumbnail((150, 150)) 
         buffered = io.BytesIO()
-        thumb_img.save(buffered, format="JPEG", quality=60) # Çok düşük boyutta kaydet
+        thumb_img.save(buffered, format="JPEG", quality=60) 
         thumbnail_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
-        # ------------------------------------------------
 
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        
         hedef_talimat = f"""
         [!!! HEDEF VARYANT: {target_code} !!!]
         1. Kullanıcı bu resimdeki tablodan SADECE '{target_code}' varyantının/ölçüsünün analiz edilmesini istedi. Tablodaki diğer satırları tamamen YOK SAY!""" if target_code else """
@@ -112,10 +109,44 @@ async def proses_olustur(
           ]
         }}
         """
+
+        models_to_try = [
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-1.5-flash"
+        ]
         
-        response = model.generate_content([prompt, analiz_resmi])
+        response = None
+        last_error = None
+        successful_model = None
+
+        for model_name in models_to_try:
+            try:
+                print(f"[INFO] Analyzing drawing using model: {model_name}...")
+                model = genai.GenerativeModel(model_name)
+                response = model.generate_content([prompt, analiz_resmi])
+                successful_model = model_name
+                print(f"[SUCCESS] Analysis completed successfully using {model_name}!")
+                break
+            except Exception as e:
+                err_str = str(e)
+                print(f"[WARNING] Model {model_name} failed. Error details: {err_str}")
+                last_error = e
+                # Kotaya veya istek sınırına takıldıysak sonraki modeli dene
+                if "quota" in err_str.lower() or "429" in err_str or "resource_exhausted" in err_str.lower():
+                    continue
+                else:
+                    # Kritik bir hata ise (örn. geçersiz anahtar) bekletmeden fırlat
+                    raise e
+        
+        if not response:
+            raise HTTPException(
+                status_code=429, 
+                detail=f"Tüm yedek modellerin günlük kotası aşıldı! Son hata detayı: {str(last_error)}"
+            )
+
         ham_metin = response.text
-        
         ilk_parantez = ham_metin.find('{')
         son_parantez = ham_metin.rfind('}')
         
@@ -125,8 +156,17 @@ async def proses_olustur(
         else:
             raise ValueError("Yapay zeka JSON formatında yanıt vermedi.")
 
-        # YENİ: JSON'a "thumbnail" verisini de ekleyip web sayfasına yolluyoruz
-        return {"mesaj": "Başarılı", "veri": sonuc_verisi, "thumbnail": thumbnail_b64}
+        return {
+            "mesaj": "Başarılı", 
+            "veri": sonuc_verisi, 
+            "thumbnail": thumbnail_b64,
+            "analiz_modeli": successful_model
+        }
 
     except Exception as e:
+        print(f"[ERROR] API Exception: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Sunucu hatası: {str(e)}")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=10000, reload=True)
