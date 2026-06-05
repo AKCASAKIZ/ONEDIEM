@@ -23,6 +23,9 @@
         .btn-excel:hover { background-color: #185c37; }
         .btn-edit { background-color: #f39c12; }
         .btn-edit:hover { background-color: #d68910; }
+        /* YENİ: Yeniden Hesapla Butonu Stili */
+        .btn-recalc { background-color: #3498db; display: none; }
+        .btn-recalc:hover { background-color: #2980b9; }
         
         .memory-btn { position: absolute; left: 20px; top: 10px; background-color: #8e44ad; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;}
         .memory-btn:hover { background-color: #732d91; }
@@ -133,6 +136,7 @@
     <div class="modal-overlay" id="archiveModal">
         <div class="modal-content" style="width: 650px;">
             <h2 style="margin-top:0; color:var(--primary-color);">🗄️ Geçmiş Analiz Arşivi</h2>
+            <p style="color:#7f8c8d; font-size:14px; text-align: left;">Daha önce analiz edilen parçaların listesi (Son 50 kayıt).</p>
             <div class="archive-list" id="archiveList"></div>
             <div style="display:flex; gap:10px; margin-top:15px;">
                 <button class="modal-btn" style="background-color: #bdc3c7; color: #333;" onclick="document.getElementById('archiveModal').style.display='none'">Kapat</button>
@@ -144,7 +148,9 @@
     <div class="modal-overlay" id="memoryModal">
         <div class="modal-content" style="width: 600px;">
             <h2 style="margin-top:0; color:#8e44ad;">🧠 EZEL KALIP Şirket Hafızası</h2>
-            <textarea id="memoryInput" class="memory-textarea" placeholder="Kuralları yazın..."></textarea>
+            <p style="color:#7f8c8d; font-size:14px; text-align: left;">Sistem sizin yazdığınız bu kuralları her analizde dikkate alacaktır.</p>
+            <textarea id="memoryInput" class="memory-textarea" placeholder="Örn:&#10;- M8'den büyük vidalarda fireyi %10 olarak hesapla.&#10;- Isıl işlem sürelerini en az 45 dk olarak belirle."></textarea>
+            <p style="color:#7f8c8d; font-size:14px; text-align: left; margin-bottom: 5px;">Görsel Veri (Kopyala & Yapıştır - Önizleme):</p>
             <div id="visualBoard" class="memory-visual-board" contenteditable="true" data-text="Bir resim kopyalayıp buraya yapıştırın (Ctrl+V)">
                 <span style="color:#bdc3c7; pointer-events: none;">Görseli buraya yapıştırın (Ctrl+V)</span>
             </div>
@@ -156,7 +162,9 @@
     <div class="modal-overlay" id="variantModal">
         <div class="modal-content">
             <h2 style="margin-top:0; color:var(--primary-color);">Tablolu Resim Kontrolü</h2>
+            <p style="color:#7f8c8d; font-size:14px; margin-bottom:20px;">Eğer yüklediğiniz teknik resimde bir <b>ölçü/kod tablosu</b> varsa, hedef kodu buraya yazın.</p>
             <input type="text" id="variantInput" class="modal-input" placeholder="Örn: 10000028 veya M8x50">
+            <p style="color:#95a5a6; font-size:12px; margin-top:0;">(Tek bir parça ise kutuyu boş bırakıp devam edebilirsiniz.)</p>
             <button class="modal-btn" onclick="startAnalysis()">🚀 Yapay Zeka Analizini Başlat</button>
         </div>
     </div>
@@ -166,6 +174,9 @@
         <button class="archive-btn" onclick="openArchiveModal()">🗄️ Arşiv</button>
         <h1>EZEL KALIP PLANLAMA-ÜRETİM</h1>
         <div class="action-buttons">
+            <!-- YENİ EKLENEN RE-CALCULATE BUTONU -->
+            <button id="recalcBtn" class="btn btn-recalc" onclick="reCalculate()">🔄 Yeniden Analiz</button>
+            
             <button id="editBtn" class="btn btn-edit" onclick="toggleEdit()">✏️ Düzenle</button>
             <button id="excelBtn" class="btn btn-excel" onclick="excelIndir()">📊 Excel İndir</button>
             <button id="printBtn" class="btn btn-print" onclick="window.print()">🖨️ PDF Kaydet / Yazdır</button>
@@ -322,6 +333,8 @@
         const excelBtn = document.getElementById('excelBtn');
         const rotateBtn = document.getElementById('rotateBtn');
         const editBtn = document.getElementById('editBtn');
+        // RECALC BUTONU REFERANSI
+        const recalcBtn = document.getElementById('recalcBtn');
 
         let currentRotation = 0; 
         let globalExcelData = [];
@@ -332,6 +345,16 @@
         let isEditing = false;
         let sonHesaplananSure = 0;
         let globalThumbnail = ""; 
+
+        // YENİ: YENİDEN HESAPLAMA FONKSİYONU
+        function reCalculate() {
+            if (!pendingFile) {
+                alert("Önce bir teknik resim yüklemelisiniz.");
+                return;
+            }
+            document.getElementById('variantModal').style.display = "flex";
+            document.getElementById('variantInput').focus();
+        }
 
         function toggleEdit() {
             if (globalProsesler.length === 0) return;
@@ -484,10 +507,14 @@
             statusMessage.innerText = "Yapay Zeka analiz ediyor... Lütfen Bekleyin.";
             loader.style.display = "block";
             infoCard.style.display = "none";
+            
+            // Yüklenme anında butonları gizle
             printBtn.style.display = "none";
             excelBtn.style.display = "none";
             rotateBtn.style.display = "none";
             editBtn.style.display = "none";
+            recalcBtn.style.display = "none";
+            
             tableBody.innerHTML = "";
             tableFoot.innerHTML = "";
             timelineContainer.innerHTML = "";
@@ -522,10 +549,12 @@
                         document.getElementById('lblMaliyet').innerText = `💵 Maliyet: ${result.maliyet}`;
                     }
                     
+                    // İşlem başarılı olunca butonları göster
                     printBtn.style.display = "inline-block"; 
                     excelBtn.style.display = "inline-block"; 
                     rotateBtn.style.display = "inline-block"; 
-                    editBtn.style.display = "inline-block"; 
+                    editBtn.style.display = "inline-block";
+                    recalcBtn.style.display = "inline-block"; // YENİ: Re-Calculate butonu görünür
 
                     globalParcaKodu = result.veri ? (result.veri.parca_kodu || '-') : '-';
                     globalParcaAciklama = result.veri ? (result.veri.parca_aciklamasi || '-') : '-';
@@ -556,10 +585,13 @@
                 } else {
                     statusMessage.style.color = "red";
                     statusMessage.innerText = `Hata: ${result.detail}`;
+                    // Hata durumunda da yeniden analiz butonunu gösterelim (belki farklı kod denemek ister)
+                    if (pendingFile) recalcBtn.style.display = "inline-block";
                 }
             } catch (error) {
                 statusMessage.style.color = "red";
                 statusMessage.innerText = "Bağlantı Hatası: Sunucu çalışıyor mu?";
+                if (pendingFile) recalcBtn.style.display = "inline-block";
             } finally {
                 loader.style.display = "none";
             }
