@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Otonom Proses Planlama | CANIAS ERP</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <style>
         :root { 
@@ -26,7 +28,7 @@
         .panel { background: white; padding: 20px; border-radius: 12px; box-shadow: var(--box-shadow); display: flex; flex-direction: column; }
         
         .col-left { flex: 0 0 35%; } 
-        .col-mid { flex: 0 0 45%; }  
+        .col-mid { flex: 0 0 35%; }  
         .col-right { flex: 1; }      
         
         .bottom-container { background: white; padding: 20px; border-radius: 12px; box-shadow: var(--box-shadow); text-align: center; }
@@ -35,11 +37,9 @@
         .drop-zone.dragover { border-color: var(--accent-color); background-color: #e8f8f5; }
         .drop-zone input { display: none; }
         
-        /* RESİM ALANI (PINLER İÇİN RELATIVE YAPILDI) */
         #previewContainer { flex-grow: 1; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: none; background: #333; min-height: 600px; position: relative; display: flex; align-items: center; justify-content: center;}
         #previewContainer img, #previewContainer iframe { width: 100%; height: 100%; object-fit: contain; transition: transform 0.3s ease; position: relative; z-index: 1;}
         
-        /* YENİ: YAPAY ZEKA GÖRSEL İŞARETÇİLERİ (PINLER) */
         .ai-pin { position: absolute; transform: translate(-50%, -100%); display: flex; flex-direction: column; align-items: center; z-index: 10; animation: dropIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; pointer-events: none;}
         @keyframes dropIn { from { opacity: 0; transform: translate(-50%, -150%) scale(0.5); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
         .ai-pin-badge { background: #e74c3c; color: white; padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 13px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); border: 2px solid white; white-space: nowrap;}
@@ -55,8 +55,15 @@
         th { background-color: var(--primary-color); color: white; white-space: nowrap;}
         tr:hover { background-color: #f5f6fa; }
         
+        /* 3D SİMÜLASYON ALANI */
+        #simContainer { width: 100%; height: 250px; background: #1a1a1a; border-radius: 8px; margin-bottom: 15px; position: relative; overflow: hidden; display: none; border: 2px solid #34495e;}
+        #simOverlayText { position: absolute; top: 10px; left: 10px; color: #2ecc71; font-family: monospace; font-size: 14px; font-weight: bold; z-index: 10; pointer-events: none;}
+        .btn-sim { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); background-color: var(--accent-color); color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; font-weight: bold; z-index: 10; box-shadow: 0 4px 6px rgba(0,0,0,0.3);}
+        .btn-sim:hover { background-color: #219653; }
+
         .timeline { margin-top: 10px; padding-left: 20px; border-left: 3px solid var(--accent-color); }
-        .timeline-item { position: relative; margin-bottom: 25px; padding-left: 20px; }
+        .timeline-item { position: relative; margin-bottom: 25px; padding-left: 20px; transition: 0.3s;}
+        .timeline-item.active { background-color: #e8f8f5; border-radius: 4px; padding: 10px 10px 10px 20px; transform: scale(1.02); border-left: 4px solid var(--accent-color);}
         .timeline-item::before { content: ''; position: absolute; left: -28px; top: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--accent-color); border: 4px solid white; box-shadow: 0 0 0 2px var(--accent-color); }
         .timeline-title { font-weight: bold; color: var(--primary-color); font-size: 16px; margin-bottom: 5px;}
         .timeline-desc { font-size: 13px; color: #7f8c8d; }
@@ -85,7 +92,7 @@
             @page { size: A4 portrait; margin: 10mm; }
             @page :first { size: A4 portrait; margin: 0mm; }
             body { background: white; padding: 0; }
-            .header, .drop-zone, .action-buttons, .loader, #statusMessage, .rotate-btn { display: none !important; }
+            .header, .drop-zone, .action-buttons, .loader, #statusMessage, .rotate-btn, #simContainer { display: none !important; }
             .panel, .bottom-container { box-shadow: none; border: none; padding: 0; }
             .top-container { display: block; }
             .main-wrapper { max-width: 100%; gap: 0; }
@@ -93,7 +100,6 @@
             .col-left h3 { display: none; } 
             #previewContainer { display: flex !important; width: 100%; height: 100%; border: none; background: transparent; }
             #previewContainer img, #previewContainer iframe { object-fit: contain; width: 100%; height: 100%; }
-            /* Yazdırırken pinleri hafif şeffaf yap */
             .ai-pin { opacity: 0.8 !important; }
             .col-mid { width: 100%; page-break-inside: avoid; margin-bottom: 30px; padding-top: 20px;}
             .col-right { width: 100%; page-break-inside: avoid; margin-bottom: 30px; }
@@ -133,7 +139,6 @@
                     <p style="margin:5px 0;">Dosyayı Sürükleyin veya Tıklayın</p>
                     <input type="file" id="fileInput" accept=".pdf, .png, .jpg, .jpeg">
                 </div>
-                <!-- PİNLER BURANIN İÇİNDE GÖRÜNECEK -->
                 <div id="previewContainer"></div>
                 <div class="loader" id="loader"></div>
                 <p id="statusMessage" style="text-align: center; font-weight: bold;"></p>
@@ -167,6 +172,12 @@
 
             <div class="panel col-right">
                 <h3 style="margin-top:0;">3. Görsel İşlem Akışı</h3>
+                
+                <div id="simContainer">
+                    <div id="simOverlayText">SİSTEM HAZIR.</div>
+                    <button id="btnPlaySim" class="btn-sim" onclick="playSimulation()">▶️ Simülasyonu Başlat</button>
+                </div>
+
                 <div class="timeline" id="timelineContainer">
                     <p style="color:#7f8c8d; font-style:italic;">İşlem akışı bekleniyor...</p>
                 </div>
@@ -191,6 +202,8 @@
         const infoCard = document.getElementById('infoCard');
         const timelineContainer = document.getElementById('timelineContainer');
         const treeContainer = document.getElementById('treeContainer');
+        const simContainer = document.getElementById('simContainer');
+        const simOverlayText = document.getElementById('simOverlayText');
         
         const printBtn = document.getElementById('printBtn');
         const excelBtn = document.getElementById('excelBtn');
@@ -200,6 +213,119 @@
         let globalExcelData = [];
         let globalParcaKodu = "Proses";
         let pendingFile = null; 
+        let globalProsesler = []; // Simülasyon için prosesleri global tutuyoruz
+
+        // --- THREE.JS SİMÜLASYON MOTORU ---
+        let scene, camera, renderer, partMesh, toolMesh, sawMesh, pressMesh;
+        let isPlaying = false;
+        let currentAnimation = null;
+        
+        function init3D() {
+            if(scene) return; // Zaten kurulduysa atla
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, simContainer.clientWidth / simContainer.clientHeight, 0.1, 100);
+            camera.position.set(0, 3, 8);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(simContainer.clientWidth, simContainer.clientHeight);
+            simContainer.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0xffffff, 0.8);
+            pointLight.position.set(5, 5, 5);
+            scene.add(pointLight);
+
+            // ANA PARÇA (Hammadde - Gri Silindir)
+            const partGeo = new THREE.CylinderGeometry(0.5, 0.5, 4, 32);
+            partGeo.rotateZ(Math.PI / 2); // Yatay çevir
+            const partMat = new THREE.MeshStandardMaterial({ color: 0x95a5a6, metalness: 0.8, roughness: 0.2 });
+            partMesh = new THREE.Mesh(partGeo, partMat);
+            scene.add(partMesh);
+
+            // TAKIMLAR (Gizli başlar)
+            // 1. Torna Ucu (Sarı Koni)
+            const toolGeo = new THREE.ConeGeometry(0.2, 0.5, 16);
+            toolGeo.rotateZ(-Math.PI / 2);
+            const toolMat = new THREE.MeshStandardMaterial({ color: 0xf1c40f, metalness: 1 });
+            toolMesh = new THREE.Mesh(toolGeo, toolMat);
+            toolMesh.visible = false;
+            scene.add(toolMesh);
+
+            // 2. Testere (Kırmızı Disk)
+            const sawGeo = new THREE.CylinderGeometry(1.2, 1.2, 0.05, 32);
+            sawGeo.rotateX(Math.PI / 2);
+            const sawMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c, metalness: 0.5 });
+            sawMesh = new THREE.Mesh(sawGeo, sawMat);
+            sawMesh.visible = false;
+            scene.add(sawMesh);
+
+            // 3. Pres/Kafa Vurma (Mavi Blok)
+            const pressGeo = new THREE.BoxGeometry(1, 1, 1);
+            const pressMat = new THREE.MeshStandardMaterial({ color: 0x3498db, metalness: 0.5 });
+            pressMesh = new THREE.Mesh(pressGeo, pressMat);
+            pressMesh.visible = false;
+            scene.add(pressMesh);
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (currentAnimation === "CNS" || currentAnimation === "OVL" || currentAnimation === "TAS") {
+                partMesh.rotation.x += 0.1; // Parça dönüyor
+                toolMesh.position.x = Math.sin(Date.now() * 0.005) * 1.5; // Takım sağa sola geziyor
+            } else if (currentAnimation === "TES") {
+                sawMesh.rotation.z += 0.2; // Testere dönüyor
+                sawMesh.position.y = Math.sin(Date.now() * 0.003) * 1; // Testere inip kalkıyor
+            } else if (currentAnimation === "VUR" || currentAnimation === "PRE") {
+                pressMesh.position.x = -2.5 + Math.sin(Date.now() * 0.01) * 0.5; // Vurma hareketi
+            } else {
+                partMesh.rotation.x += 0.01; // Rölanti dönüşü
+            }
+            renderer.render(scene, camera);
+        }
+
+        function resetTools() {
+            toolMesh.visible = false; sawMesh.visible = false; pressMesh.visible = false;
+            partMesh.rotation.set(0, 0, 0);
+        }
+
+        async function playSimulation() {
+            if(isPlaying || globalProsesler.length === 0) return;
+            isPlaying = true;
+            document.getElementById('btnPlaySim').style.display = "none";
+            
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            
+            for (let i = 0; i < globalProsesler.length; i++) {
+                let p = globalProsesler[i];
+                let kod = p.canias_kodu ? p.canias_kodu.substring(0,3) : "";
+                
+                // Timeline Vurgusu
+                timelineItems.forEach(item => item.classList.remove('active'));
+                if(timelineItems[i]) timelineItems[i].classList.add('active');
+                
+                simOverlayText.innerText = `İşleniyor: [${kod}] ${p.aciklama}`;
+                resetTools();
+                
+                // Sembolik Eşleştirme
+                if (kod === "TES") { currentAnimation = "TES"; sawMesh.position.set(0, 1.5, 0); sawMesh.visible = true; }
+                else if (kod === "VUR" || kod === "PRE") { currentAnimation = "VUR"; pressMesh.position.set(-3, 0, 0); pressMesh.visible = true; }
+                else { currentAnimation = "CNS"; toolMesh.position.set(0, 0.6, 0); toolMesh.visible = true; } // Default CNC/Torna
+
+                // Her işlem 3 saniye sürsün
+                await new Promise(r => setTimeout(r, 3000));
+            }
+            
+            resetTools();
+            currentAnimation = null;
+            simOverlayText.innerText = "SİMÜLASYON TAMAMLANDI.";
+            timelineItems.forEach(item => item.classList.remove('active'));
+            setTimeout(() => { document.getElementById('btnPlaySim').style.display = "block"; isPlaying = false; }, 1000);
+        }
+        // ------------------------------------
 
         dropZone.addEventListener('click', () => fileInput.click());
         dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
@@ -216,10 +342,8 @@
             previewContainer.style.display = "block";
             previewContainer.innerHTML = "";
             currentRotation = 0; 
-            
             const fileURL = URL.createObjectURL(file);
             
-            // PDF veya Resim gösterimi
             if(file.type === "application/pdf") {
                 previewContainer.innerHTML = `<iframe id="docFrame" src="${fileURL}#toolbar=0" frameborder="0"></iframe>`;
             } else {
@@ -245,7 +369,6 @@
         function resmiDondur() {
             currentRotation = (currentRotation + 90) % 360;
             const element = document.getElementById('docImage') || document.getElementById('docFrame');
-            // Pinlerin dönmemesi için sadece resmi döndürüyoruz
             if(element) { element.style.transform = `rotate(${currentRotation}deg)`; }
         }
 
@@ -266,12 +389,13 @@
             printBtn.style.display = "none";
             excelBtn.style.display = "none";
             rotateBtn.style.display = "none";
+            simContainer.style.display = "none";
             tableBody.innerHTML = "";
             timelineContainer.innerHTML = "";
             treeContainer.innerHTML = "";
             globalExcelData = []; 
+            globalProsesler = [];
             
-            // Eski pinleri temizle
             document.querySelectorAll('.ai-pin').forEach(pin => pin.remove());
 
             const formData = new FormData();
@@ -290,9 +414,17 @@
                         statusMessage.innerText = "Liste bulunamadı."; return;
                     }
 
+                    globalProsesler = prosesListesi; // Simülasyona aktar
+
                     printBtn.style.display = "inline-block"; 
                     excelBtn.style.display = "inline-block"; 
                     rotateBtn.style.display = "inline-block"; 
+                    
+                    // Simülasyon Ekranını Aç ve Kur
+                    simContainer.style.display = "block";
+                    document.getElementById('btnPlaySim').style.display = "block";
+                    simOverlayText.innerText = "SİSTEM HAZIR. SİMÜLASYONU BAŞLATIN.";
+                    setTimeout(init3D, 100); // UI oturduktan sonra 3D'yi başlat
 
                     let toplamSure = 0; 
                     const parcaKodu = result.veri ? (result.veri.parca_kodu || '-') : '-';
@@ -321,7 +453,6 @@
                         let sure = parseFloat(proses.sure_dk) || 0;
                         toplamSure += sure;
 
-                        // TABLOYA EKLE
                         const tr = document.createElement("tr");
                         tr.innerHTML = `
                             <td style="font-weight:bold; color:var(--primary-color);">${proses.canias_kodu || '-'}</td>
@@ -333,37 +464,30 @@
                         `;
                         tableBody.appendChild(tr);
 
-                        // EXCELE EKLE
                         globalExcelData.push([ proses.canias_kodu || '-', proses.aciklama || '-', proses.brut_kg || '-', proses.net_kg || '-', proses.fire_kg || '-', proses.sure_dk || '-' ]);
 
-                        // İNFOGRAFİĞE EKLE
                         const opKisaAd = (proses.aciklama || "").split(':')[0];
                         timelineContainer.innerHTML += `
-                            <div class="timeline-item">
+                            <div class="timeline-item" id="timeline-${index}">
                                 <div class="timeline-title">${index + 1}. ${proses.canias_kodu} | ${opKisaAd}</div>
                                 <div class="timeline-desc">${proses.aciklama}</div>
                                 <div class="timeline-badge">Süre: ${proses.sure_dk} Dk</div>
                             </div>
                         `;
 
-                        // ÜRÜN AĞACINA EKLE
                         treeHTML += `<div class="tree-line"></div>`;
                         treeHTML += `<div class="tree-node">${proses.canias_kodu}<br><span style="font-size:12px; font-weight:normal;">Fire: ${proses.fire_kg} KG</span></div>`;
 
-                        // === YENİ: RESİM ÜZERİNE OKLU PİN (İŞARETÇİ) EKLEME ===
                         if (proses.x_yuzde !== undefined && proses.y_yuzde !== undefined) {
-                            // Aynı yere denk gelen operasyonlar (örn: arka arkaya 2 kafa vurma) üst üste binmesin diye hafif rastgele kaydırma
                             let offsetX = proses.x_yuzde + (Math.random() * 4 - 2); 
                             let offsetY = proses.y_yuzde + (Math.random() * 4 - 2);
 
                             let pin = document.createElement("div");
                             pin.className = "ai-pin";
-                            // Görsel efekt gecikmesi
                             pin.style.animationDelay = `${index * 0.2}s`; 
                             pin.style.left = offsetX + "%";
                             pin.style.top = offsetY + "%";
                             
-                            // Pin içeriği (1. TES, 2. VUR vs.)
                             let kisaKod = proses.canias_kodu ? proses.canias_kodu.substring(0,3) : "OPR";
                             pin.innerHTML = `
                                 <div class="ai-pin-badge">${index + 1}. ${kisaKod}</div>
