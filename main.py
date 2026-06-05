@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-import fitz  # PyMuPDF
+import fitz 
 import io
 from PIL import Image
 import google.generativeai as genai
@@ -9,9 +9,6 @@ import json
 import os
 from dotenv import load_dotenv
 
-# ==========================================
-# GÜVENLİ API ANAHTARI YÜKLEMESİ
-# ==========================================
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 
@@ -35,7 +32,11 @@ async def ana_sayfa():
     return FileResponse("index.html")
 
 @app.post("/api/proses-olustur")
-async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("")):
+async def proses_olustur(
+    file: UploadFile = File(...), 
+    target_code: str = Form(""),
+    sirket_hafizasi: str = Form("") # YENİ: SİZİN KURALLARINIZ
+):
     if not file.filename:
         raise HTTPException(status_code=400, detail="Dosya seçilmedi")
 
@@ -47,7 +48,6 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
             doc = fitz.open(stream=contents, filetype="pdf")
             if len(doc) > 0:
                 page = doc.load_page(0)
-                # KULLANICI İSTEĞİ: DPI YENİDEN 150'YE ÇIKARILDI (YÜKSEK ÇÖZÜNÜRLÜK)
                 pix = page.get_pixmap(dpi=150) 
                 mode = "RGBA" if pix.alpha else "RGB"
                 analiz_resmi = Image.frombytes(mode, [pix.width, pix.height], pix.samples)
@@ -60,26 +60,31 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
 
         model = genai.GenerativeModel('gemini-2.5-flash')
         
-        if target_code and target_code.strip() != "":
-            hedef_talimat = f"""
+        hedef_talimat = f"""
         [!!! HEDEF VARYANT: {target_code} !!!]
-        1. Kullanıcı bu resimdeki tablodan SADECE '{target_code}' varyantının/ölçüsünün analiz edilmesini istedi. Tablodaki diğer satırları tamamen YOK SAY!"""
-        else:
-            hedef_talimat = """
-        1. Resmin antet kısmındaki ana "CANIAS KODU"nu (örn: US10000028) bul.
+        1. Kullanıcı bu resimdeki tablodan SADECE '{target_code}' varyantının/ölçüsünün analiz edilmesini istedi. Tablodaki diğer satırları tamamen YOK SAY!""" if target_code else """
+        1. Resmin antet kısmındaki ana "CANIAS KODU"nu bul.
         2. Antetteki "AÇIKLAMA" veya parça adını bul."""
+
+        # EĞER ŞİRKET HAFIZASINDA BİLGİ VARSA, BEYNE ENJEKTE ET
+        hafiza_talimati = f"""
+        [!!! EZEL CIVATA KURUMSAL HAFIZA (KESİN UYULACAK) !!!]
+        Aşağıdaki kurallar bizzat baş mühendis tarafından yazılmıştır. Prosesi oluştururken bu kuralları ASLA çiğneme ve hesaplamalarını buna göre yap:
+        {sirket_hafizasi}
+        """ if sirket_hafizasi and sirket_hafizasi.strip() != "" else ""
 
         prompt = f"""
         Sen uzman bir üretim mühendisi ve ERP planlamacısısın. Sana verilen teknik resmi dikkatlice incele.
         
         {hedef_talimat}
+        {hafiza_talimati}
         
         3. Parçanın şekline, malzemesine ve toleranslarına bakarak mantıklı bir imalat proses rotası çıkar.
         4. Her operasyon için tahmini Brüt Kg, Net Kg, Fire Kg ve İşlem Süresi (DK) belirle.
         5. "KONUŞAN KOD" SİSTEMİ: Operasyonun "canias_kodu" değerini oluştururken A-, B- gibi harfler YERİNE, operasyonu temsil eden 3 harfli bir önek kullan.
-        6. [YENİ YETENEK - GÖRSEL KOORDİNAT]: Her bir operasyonun parçanın tam olarak neresinde uygulandığını tahmin et. Bu bölgenin resim üzerindeki tahmini merkezini X (soldan sağa) ve Y (yukarıdan aşağıya) ekseninde YÜZDE (%) olarak 'x_yuzde' ve 'y_yuzde' değerlerine yaz. (Örn: Diş çekme uctaysa y_yuzde:80, kafa vurma üstteyse y_yuzde:20).
+        6. [GÖRSEL KOORDİNAT]: Her bir operasyonun parçanın neresinde yapıldığını tahmin edip x_yuzde ve y_yuzde olarak ekle.
         
-        Sadece ve sadece aşağıdaki JSON formatında çıktı ver. Başında veya sonunda hiçbir ekstra kelime kullanma:
+        Sadece JSON formatında çıktı ver:
         {{
           "parca_kodu": "BULUNAN_KOD",
           "parca_aciklamasi": "BULUNAN_AÇIKLAMA",
