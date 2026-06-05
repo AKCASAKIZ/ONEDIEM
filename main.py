@@ -1,5 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import fitz  # PyMuPDF
 import io
 from PIL import Image
@@ -11,22 +12,15 @@ from dotenv import load_dotenv
 # ==========================================
 # GÜVENLİ API ANAHTARI YÜKLEMESİ
 # ==========================================
-load_dotenv() # .env dosyasındaki gizli bilgileri okur
+load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not API_KEY:
-    raise ValueError("API Anahtarı bulunamadı! Lütfen .env dosyasını kontrol edin.")
+    print("[UYARI] API anahtarı bulunamadı, sistem değişkenleri kontrol ediliyor...")
 
 genai.configure(api_key=API_KEY)
 
 app = FastAPI(title="CANIAS İmalat Prosesi API")
-# --------- YENİ EKLENEN KISIM: Ana Sayfayı Aç -----------
-@app.get("/")
-async def ana_sayfa():
-    return FileResponse("index.html")
-# --------------------------------------------------------
-
-@app.post("/api/proses-olustur")
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,6 +29,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --------- ANA SAYFAYI AÇ -----------
+@app.get("/")
+async def ana_sayfa():
+    return FileResponse("index.html")
+# ------------------------------------
 
 @app.post("/api/proses-olustur")
 async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("")):
@@ -49,7 +49,8 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
             doc = fitz.open(stream=contents, filetype="pdf")
             if len(doc) > 0:
                 page = doc.load_page(0)
-                pix = page.get_pixmap(dpi=150)
+                # KOTA DOSTU 72 DPI (Hızlı yükleme ve düşük jeton kullanımı)
+                pix = page.get_pixmap(dpi=72) 
                 mode = "RGBA" if pix.alpha else "RGB"
                 analiz_resmi = Image.frombytes(mode, [pix.width, pix.height], pix.samples)
             else:
@@ -59,9 +60,9 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
         else:
             raise HTTPException(status_code=400, detail="Lütfen PDF veya resim yükleyin.")
 
-        model = genai.GenerativeModel('gemini-2.0-flash')
+        # MODEL 2.5 KULLANIMI
+        model = genai.GenerativeModel('gemini-2.5-flash')
         
-        # EĞER KULLANICI TABLODAN ÖZEL BİR KOD GİRDİYSE YAPAY ZEKAYI O YÖNE KİLİTLE
         if target_code and target_code.strip() != "":
             hedef_talimat = f"""
         [!!! HEDEF VARYANT: {target_code} !!!]
@@ -79,7 +80,7 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
         
         3. Parçanın şekline, malzemesine ve toleranslarına bakarak mantıklı bir imalat proses rotası çıkar.
         4. Her operasyon için tahmini Brüt Kg, Net Kg, Fire Kg ve İşlem Süresi (DK) belirle.
-        5. "KONUŞAN KOD" SİSTEMİ: Operasyonun "canias_kodu" değerini oluştururken A-, B- gibi harfler YERİNE, operasyonu temsil eden 3 harfli bir önek kullan. Orijinal parça kodunun başındaki harfleri silip bu öneki ekle (Örn: Testere için TES10000028).
+        5. "KONUŞAN KOD" SİSTEMİ: Operasyonun "canias_kodu" değerini oluştururken A-, B- gibi harfler YERİNE, operasyonu temsil eden 3 harfli bir önek kullan. Orijinal parça kodunun başındaki harfleri silip bu öneki ekle (Örn: Testere/Kesme için TES10000028).
         
         Sadece ve sadece aşağıdaki JSON formatında çıktı ver. Başında veya sonunda hiçbir ekstra kelime kullanma:
         {{
@@ -117,7 +118,3 @@ async def proses_olustur(file: UploadFile = File(...), target_code: str = Form("
     except Exception as e:
         print(f"\n[!!!] SUNUCU HATASI OLUŞTU: {str(e)}\n")
         raise HTTPException(status_code=500, detail=f"Sunucu hatası: {str(e)}")
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
