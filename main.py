@@ -18,7 +18,8 @@ if not API_KEY:
 
 genai.configure(api_key=API_KEY)
 
-app = FastAPI(title="CANIAS İmalat Prosesi API")
+# İSİM EZEL KALIP OLARAK GÜNCELLENDİ
+app = FastAPI(title="EZEL KALIP PLANLAMA-ÜRETİM API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -82,7 +83,7 @@ async def proses_olustur(
         """ if sirket_hafizasi and sirket_hafizasi.strip() != "" else ""
 
         prompt = f"""
-        Sen uzman bir üretim mühendisi ve ERP planlamacısısın. Sana verilen teknik resmi dikkatlice incele.
+        Sen EZEL KALIP PLANLAMA-ÜRETİM için uzman bir üretim mühendisi ve ERP planlamacısısın. Sana verilen teknik resmi dikkatlice incele.
         
         {hedef_talimat}
         {hafiza_talimati}
