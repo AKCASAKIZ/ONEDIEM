@@ -18,7 +18,7 @@
         .header { text-align: center; margin-bottom: 20px; position: relative;}
         
         .action-buttons { position: absolute; right: 20px; top: 10px; display: flex; gap: 10px; }
-        .btn { color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+        .btn { color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 8px; cursor: pointer; display: none; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
         .btn-print { background-color: var(--primary-color); }
         .btn-print:hover { background-color: #1a252f; }
         .btn-excel { background-color: #217346; } 
@@ -27,6 +27,10 @@
         .btn-edit:hover { background-color: #d68910; }
         .btn-recalc { background-color: #3498db; display: none; }
         .btn-recalc:hover { background-color: #2980b9; }
+        
+        /* YENİ: Veritabanı Öğretme Butonu */
+        .btn-db { background-color: #8e44ad; display: none; }
+        .btn-db:hover { background-color: #732d91; }
         
         .memory-btn { position: absolute; left: 20px; top: 10px; background-color: #8e44ad; color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s;}
         .memory-btn:hover { background-color: #732d91; }
@@ -61,11 +65,9 @@
         #previewContainer { flex-grow: 1; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; display: none; background: #333; min-height: 600px; position: relative; align-items: center; justify-content: center;}
         #previewContainer img, #previewContainer iframe { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 1;}
 
-        /* YENİ: ONAY BUTONLARI */
         .approval-buttons { display: none; justify-content: space-between; gap: 10px; margin-top: 15px; }
         .approval-buttons button { flex: 1; padding: 12px; font-size: 15px; font-weight: bold; border-radius: 8px; color: white; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
 
-        /* YENİ: KAYAN (FLOATING) KOD GİRİŞ PENCERESİ */
         .floating-modal {
             display: none; position: fixed; bottom: 30px; right: 30px; background: white; padding: 25px; 
             border-radius: 12px; box-shadow: 0 10px 40px rgba(0,0,0,0.4); z-index: 10000; width: 350px; 
@@ -169,12 +171,10 @@
         </div>
     </div>
 
-    <!-- YENİ: HAREKETLİ VE ARKA PLANI ENGELLEMEYEN KOD GİRİŞ EKRANI -->
     <div id="variantFloatingBox" class="floating-modal">
         <h3 style="margin-top:0; color:var(--primary-color);">Tablolu Resim Kontrolü</h3>
-        <p style="font-size:13px; color:#7f8c8d;">Arkada bulunan teknik resme bakarak (yakınlaştırıp okuyabilirsiniz) tablo değerini girebilirsiniz.</p>
-        <input type="text" id="variantInput" class="modal-input" placeholder="Örn: US10000028 veya M8x50" style="width: 100%;">
-        <p style="color:#95a5a6; font-size:11px; margin:5px 0 0 0;">(Tek parça ise boş bırakıp başlatın)</p>
+        <p style="font-size:13px; color:#7f8c8d;">Arkada bulunan teknik resme bakarak tablo değerini girebilirsiniz.</p>
+        <input type="text" id="variantInput" class="modal-input" placeholder="Örn: M8x50" style="width: 100%;">
         <div style="display:flex; gap:10px; margin-top:15px;">
             <button class="modal-btn" style="background: #bdc3c7; color:#333; margin-top:0;" onclick="document.getElementById('variantFloatingBox').style.display='none'; document.getElementById('approvalButtons').style.display='flex';">Geri</button>
             <button class="modal-btn" style="margin-top:0;" onclick="startAnalysis()">🚀 Analizi Başlat</button>
@@ -186,10 +186,12 @@
         <button class="archive-btn" onclick="openArchiveModal()">🗄️ Arşiv</button>
         <h1>EZEL KALIP PLANLAMA-ÜRETİM</h1>
         <div class="action-buttons">
+            <button id="dbBtn" class="btn btn-db" onclick="veritabaninaOgreT()">🧠 GitHub Veritabanına Öğret</button>
+            
             <button id="recalcBtn" class="btn btn-recalc" onclick="reCalculate()">🔄 Yeniden Analiz</button>
             <button id="editBtn" class="btn btn-edit" onclick="toggleEdit()">✏️ Düzenle</button>
-            <button id="excelBtn" class="btn btn-excel" onclick="excelIndir()">📊 Form Excel İndir</button>
-            <button id="printBtn" class="btn btn-print" onclick="window.print()">🖨️ PDF Kaydet / Yazdır</button>
+            <button id="excelBtn" class="btn btn-excel" onclick="excelIndir()">📊 Excel İndir</button>
+            <button id="printBtn" class="btn btn-print" onclick="window.print()">🖨️ PDF</button>
         </div>
     </div>
 
@@ -204,9 +206,8 @@
                 
                 <div id="previewContainer"></div>
                 
-                <!-- YENİ: RESİM ONAY BUTONLARI -->
                 <div id="approvalButtons" class="approval-buttons">
-                    <button style="background-color: #e74c3c;" onclick="iptalEt()">❌ Yanlış Resim (İptal)</button>
+                    <button style="background-color: #e74c3c;" onclick="iptalEt()">❌ Yanlış Resim</button>
                     <button style="background-color: #27ae60;" onclick="resmiOnayla()">✅ Resmi Onayla</button>
                 </div>
 
@@ -221,8 +222,8 @@
                     <p id="lblParcaAciklamasi">AÇIKLAMA: -</p>
                     <p id="lblToplamSure" class="total-time-highlight">TOPLAM SÜRE: -</p>
                     <div style="display: flex; gap: 10px; margin-top: 15px;">
-                        <span id="lblToken" style="background:#3498db; color:white; padding:6px 10px; border-radius:6px; font-size:13px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">🪙 Token: 0</span>
-                        <span id="lblMaliyet" style="background:#2ecc71; color:white; padding:6px 10px; border-radius:6px; font-size:13px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">💵 Maliyet: $0.00000</span>
+                        <span id="lblToken" style="background:#3498db; color:white; padding:6px 10px; border-radius:6px; font-size:13px; font-weight:bold;">🪙 Token: 0</span>
+                        <span id="lblMaliyet" style="background:#2ecc71; color:white; padding:6px 10px; border-radius:6px; font-size:13px; font-weight:bold;">💵 Maliyet: $0.00000</span>
                     </div>
                 </div>
                 <div style="overflow-x:auto;">
@@ -248,17 +249,22 @@
     <script>
         const ezelLogoBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
 
+        let aktifKullanici = "";
+
         function checkLogin() {
             const u = document.getElementById('username').value.toUpperCase();
             const p = document.getElementById('password').value.toUpperCase();
             if ((u === "CAGLAR" && p === "CAGLAR") || (u === "TUNC" && p === "TUNC")) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 sessionStorage.setItem('isLoggedIn', 'true');
+                sessionStorage.setItem('aktifKullanici', u);
+                aktifKullanici = u;
             } else { alert("Hatalı Kullanıcı Adı veya Şifre!"); }
         }
 
         if (sessionStorage.getItem('isLoggedIn') === 'true') {
             document.getElementById('loginOverlay').style.display = 'none';
+            aktifKullanici = sessionStorage.getItem('aktifKullanici');
         }
 
         function saveToArchive(kodu, aciklama, sure, prosesler, base64Thumb) {
@@ -344,8 +350,10 @@
         const rotateBtn = document.getElementById('rotateBtn');
         const editBtn = document.getElementById('editBtn');
         const recalcBtn = document.getElementById('recalcBtn');
+        const dbBtn = document.getElementById('dbBtn');
 
         let currentRotation = 0; 
+        let globalExcelData = [];
         let globalParcaKodu = "Proses";
         let globalParcaAciklama = "-";
         let pendingFile = null; 
@@ -353,6 +361,46 @@
         let isEditing = false;
         let sonHesaplananSure = 0;
         let globalThumbnail = ""; 
+
+        // YENİ: VERİTABANI ÖĞRETME FONKSİYONU
+        async function veritabaninaOgreT() {
+            if(globalProsesler.length === 0) return;
+            
+            dbBtn.innerHTML = "⏳ Kaydediliyor...";
+            dbBtn.disabled = true;
+
+            const dbData = {
+                "parca_kodu": globalParcaKodu,
+                "parca_aciklamasi": globalParcaAciklama,
+                "hedef_varyant": document.getElementById('variantInput').value,
+                "onaylayan": aktifKullanici,
+                "tarih": new Date().toISOString(),
+                "mukemmel_rota": globalProsesler
+            };
+
+            try {
+                const response = await fetch("/api/veritabanina-kaydet", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(dbData)
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert("Kusursuz proses başarıyla GitHub Ana Veritabanına öğretildi!");
+                    dbBtn.innerHTML = "✅ Veritabanına Eklendi";
+                    dbBtn.style.backgroundColor = "#27ae60";
+                } else {
+                    alert(`Hata: ${result.detail}`);
+                    dbBtn.innerHTML = "🧠 GitHub Veritabanına Öğret";
+                }
+            } catch (error) {
+                alert("Bağlantı hatası!");
+                dbBtn.innerHTML = "🧠 GitHub Veritabanına Öğret";
+            } finally {
+                dbBtn.disabled = false;
+            }
+        }
 
         function reCalculate() {
             if (!pendingFile) { alert("Önce bir teknik resim yüklemelisiniz."); return; }
@@ -389,6 +437,9 @@
                 isEditing = false;
                 gorselleriGuncelle();
                 saveToArchive(globalParcaKodu + " (Düzeltilmiş)", globalParcaAciklama, sonHesaplananSure, globalProsesler, globalThumbnail);
+                
+                // Mükemmelleştirildikten sonra öğretme butonunu parlat
+                dbBtn.style.boxShadow = "0 0 15px #8e44ad";
             }
         }
 
@@ -432,7 +483,6 @@
         dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); if (e.dataTransfer.files.length > 0) dosyayiIsle(e.dataTransfer.files[0]); });
         fileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) dosyayiIsle(e.target.files[0]); });
 
-        // YENİDEN DÜZENLENEN DOSYA İŞLEME SİSTEMİ (ONAY AŞAMASI)
         function dosyayiIsle(file) {
             previewContainer.style.display = "flex";
             previewContainer.innerHTML = "";
@@ -446,8 +496,6 @@
             }
             
             pendingFile = file;
-            
-            // Analiz hemen başlamaz, onay butonları gösterilir
             document.getElementById('approvalButtons').style.display = "flex";
             document.getElementById('variantFloatingBox').style.display = "none";
         }
@@ -457,11 +505,10 @@
             document.getElementById('previewContainer').style.display = "none";
             document.getElementById('previewContainer').innerHTML = "";
             document.getElementById('approvalButtons').style.display = "none";
-            document.getElementById('fileInput').value = ""; // Inputu sıfırla
+            document.getElementById('fileInput').value = ""; 
         }
 
         function resmiOnayla() {
-            // Butonları gizle, floating pencereyi aç
             document.getElementById('approvalButtons').style.display = "none";
             document.getElementById('variantFloatingBox').style.display = "block";
             document.getElementById('variantInput').focus();
@@ -580,6 +627,7 @@
             rotateBtn.style.display = "none";
             editBtn.style.display = "none";
             recalcBtn.style.display = "none";
+            dbBtn.style.display = "none"; // YENİ
             
             tableBody.innerHTML = "";
             tableFoot.innerHTML = "";
@@ -617,6 +665,9 @@
                     rotateBtn.style.display = "inline-block"; 
                     editBtn.style.display = "inline-block";
                     recalcBtn.style.display = "inline-block"; 
+                    dbBtn.style.display = "inline-block"; // YENİ: Öğretme Butonu
+                    dbBtn.style.backgroundColor = "#8e44ad";
+                    dbBtn.innerHTML = "🧠 GitHub Veritabanına Öğret";
 
                     globalParcaKodu = result.veri ? (result.veri.parca_kodu || '-') : '-';
                     globalParcaAciklama = result.veri ? (result.veri.parca_aciklamasi || '-') : '-';
