@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import fitz 
@@ -8,13 +8,16 @@ from PIL import Image
 import google.generativeai as genai
 import json
 import os
+import requests # YENİ: GitHub ile iletişim kurmak için
 from dotenv import load_dotenv
 
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_REPO = os.getenv("GITHUB_REPO")
 
 if not API_KEY:
-    print("[UYARI] API anahtarı bulunamadı, sistem değişkenleri kontrol ediliyor...")
+    print("[UYARI] API anahtarı bulunamadı!")
 
 genai.configure(api_key=API_KEY)
 
@@ -59,7 +62,6 @@ async def proses_olustur(
         else:
             raise HTTPException(status_code=400, detail="Lütfen PDF veya resim yükleyin.")
 
-        # --- MİNİ GÖRSEL (THUMBNAIL) OLUŞTURMA ---
         thumb_img = analiz_resmi.copy()
         thumb_img.thumbnail((150, 150))
         buffered = io.BytesIO()
@@ -68,48 +70,34 @@ async def proses_olustur(
         
         hedef_talimat = f"""
         [!!! HEDEF VARYANT: {target_code} !!!]
-        1. Kullanıcı bu resimdeki tablodan SADECE '{target_code}' varyantının/ölçüsünün analiz edilmesini istedi. Tablodaki diğer satırları tamamen YOK SAY!""" if target_code else """
-        1. Resmin antet kısmındaki ana "KODU"nu bul.
-        2. Antetteki "AÇIKLAMA" veya parça adını bul."""
+        Kullanıcı bu resimdeki tablodan SADECE '{target_code}' varyantının/ölçüsünün analiz edilmesini istedi.""" if target_code else "Resmin antet kısmındaki ana 'KODU'nu ve 'AÇIKLAMA'yı bul."
 
         hafiza_talimati = f"""
         [!!! KURUMSAL HAFIZA (KESİN UYULACAK) !!!]
-        Aşağıdaki kurallar bizzat mühendis tarafından yazılmıştır. Prosesi oluştururken bu kuralları ASLA çiğneme ve hesaplamalarını buna göre yap:
         {sirket_hafizasi}
         """ if sirket_hafizasi and sirket_hafizasi.strip() != "" else ""
 
         prompt = f"""
-        Sen EZEL KALIP PLANLAMA-ÜRETİM için uzman bir üretim mühendisi ve ERP planlamacısısın. Sana verilen teknik resmi dikkatlice incele.
+        Sen EZEL KALIP PLANLAMA-ÜRETİM için uzman bir üretim mühendisi ve ERP planlamacısısın.
         
         {hedef_talimat}
         {hafiza_talimati}
         
-        3. Parçanın şekline, malzemesine ve toleranslarına bakarak mantıklı bir imalat proses rotası çıkar.
-        4. Her operasyon için tahmini Brüt Kg, Net Kg, Fire Kg ve İşlem Süresi (DK) belirle.
-        5. "KONUŞAN KOD" SİSTEMİ (ÇOK ÖNEMLİ): Orijinal parça kodunun başındaki harfi (örn: 'U') tamamen SİL. Sadece rakamlar kalsın. Bu rakamların başına operasyonu temsil eden 2 HARFLİ bir önek ekle. (Örn: Parça U0009815 ve işlem Testere ise kod TE0009815 olmalı, Torna ise TO0009815 olmalı).
-        6. [AÇIKLAMALAR ÇİFTLENDİ]: Her operasyon için İKİ farklı açıklama yazacaksın:
-           - "kisa_aciklama": ERP'ye kaydedilecek, operasyonu net özetleyen MAKSİMUM 125 KARAKTERLİK metin.
-           - "uzun_aciklama": Operatörün tezgahta okuyacağı, dikkat edilecek hassasiyetleri ve detayları içeren MAKSİMUM 500 KARAKTERLİK talimat.
+        KURALLAR:
+        1. Proses rotası çıkar. Her operasyon için tahmini Brüt Kg, Net Kg, Fire Kg ve İşlem Süresi (DK) belirle.
+        2. Orijinal parça kodunun başındaki harfi (örn: 'U') tamamen SİL. Bu rakamların başına operasyonu temsil eden 2 HARFLİ bir önek ekle. (Örn: U0009815 -> Testere için TE0009815).
+        3. kisa_aciklama (Maks 125 kar.), uzun_aciklama (Maks 500 kar.).
         
         Sadece JSON formatında çıktı ver:
         {{
-          "parca_kodu": "BULUNAN_KOD",
-          "parca_aciklamasi": "BULUNAN_AÇIKLAMA",
+          "parca_kodu": "...",
+          "parca_aciklamasi": "...",
           "prosesler": [
-            {{
-              "canias_kodu": "TE0009815",
-              "kisa_aciklama": "125 karaktere kadar kısa özet",
-              "uzun_aciklama": "500 karaktere kadar detaylı operatör talimatı",
-              "brut_kg": "0.00",
-              "net_kg": "0.00",
-              "fire_kg": "0.00",
-              "sure_dk": "0.0"
-            }}
+            {{"canias_kodu": "TE00...", "kisa_aciklama": "...", "uzun_aciklama": "...", "brut_kg": "0.0", "net_kg": "0.0", "fire_kg": "0.0", "sure_dk": "0.0"}}
           ]
         }}
         """
         
-        # --- KOTA AŞIMI (429) İÇİN DİNAMİK MODEL YEDEKLEME ---
         modeller = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.0-flash']
         response = None
         hata_mesaji = ""
@@ -121,15 +109,13 @@ async def proses_olustur(
                 break 
             except Exception as e:
                 hata_mesaji = str(e)
-                print(f"[UYARI] {model_adi} başarısız: {hata_mesaji}. Diğerine geçiliyor...")
                 continue 
                 
         if not response:
-            raise ValueError(f"Tüm modellerin kotası doldu veya hata oluştu. {hata_mesaji}")
+            raise ValueError(f"Kota doldu veya hata oluştu. {hata_mesaji}")
 
         ham_metin = response.text
         
-        # --- TOKEN VE MALİYET HESAPLAMA ---
         try:
             p_tokens = response.usage_metadata.prompt_token_count
             c_tokens = response.usage_metadata.candidates_token_count
@@ -153,3 +139,55 @@ async def proses_olustur(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Sunucu hatası: {str(e)}")
+
+# --- YENİ: GITHUB VERİTABANINA ÖĞRETME SİSTEMİ ---
+@app.post("/api/veritabanina-kaydet")
+async def github_veritabani_kaydet(veri: dict = Body(...)):
+    if not GITHUB_TOKEN or not GITHUB_REPO:
+        raise HTTPException(status_code=500, detail="GitHub Token veya Repo ayarlanmamış (.env dosyasını kontrol edin).")
+
+    dosya_yolu = "ezel_kalip_db.json"
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{dosya_yolu}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}", "Accept": "application/vnd.github.v3+json"}
+    
+    try:
+        # 1. Mevcut Veritabanını İndir
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            file_data = response.json()
+            sha = file_data['sha']
+            mevcut_icerik = base64.b64decode(file_data['content']).decode('utf-8')
+            veritabani = json.loads(mevcut_icerik)
+        else:
+            # Dosya yoksa yeni bir liste oluştur
+            sha = None
+            veritabani = []
+
+        # 2. Yeni Veriyi Ekle (Aynı parça kodu varsa güncelle, yoksa ekle)
+        guncellendi = False
+        for i, kayit in enumerate(veritabani):
+            if kayit.get("parca_kodu") == veri.get("parca_kodu"):
+                veritabani[i] = veri
+                guncellendi = True
+                break
+        
+        if not guncellendi:
+            veritabani.append(veri)
+
+        # 3. GitHub'a Geri Yükle (Commit)
+        yeni_icerik_b64 = base64.b64encode(json.dumps(veritabani, ensure_ascii=False, indent=2).encode('utf-8')).decode('utf-8')
+        
+        commit_mesaji = f"Veritabanı Eğitimi: {veri.get('parca_kodu')} eklendi/güncellendi."
+        payload = {"message": commit_mesaji, "content": yeni_icerik_b64}
+        if sha:
+            payload["sha"] = sha
+
+        put_response = requests.put(url, headers=headers, json=payload)
+        
+        if put_response.status_code in [200, 201]:
+            return {"mesaj": "Veritabanı başarıyla güncellendi ve GitHub'a kaydedildi!"}
+        else:
+            raise HTTPException(status_code=put_response.status_code, detail=f"GitHub Hatası: {put_response.text}")
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Veritabanı kayıt hatası: {str(e)}")
