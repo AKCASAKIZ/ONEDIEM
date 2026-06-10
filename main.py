@@ -14,12 +14,12 @@ import pandas as pd # MASTER DATA İÇİN EKLENDİ
 
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
-GH_TOKEN = os.getenv("EZEL_YENI_TOKEN") # HATA VERMEYEN YENİ DEĞİŞKEN ADI
+GH_TOKEN = os.getenv("GH_TOKEN") # HATA VERMEYEN YENİ DEĞİŞKEN ADI
 GITHUB_REPO = os.getenv("GITHUB_REPO")
 
 if not API_KEY:
     print("[UYARI] GEMINI_API_KEY bulunamadı!")
-if not EZEL_YENI_TOKEN:
+if not GH_TOKEN:
     print("[UYARI] GH_TOKEN bulunamadı!")
 if not GITHUB_REPO:
     print("[UYARI] GITHUB_REPO bulunamadı!")
