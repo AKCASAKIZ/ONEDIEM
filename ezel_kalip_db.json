@@ -25,5 +25,52 @@
         "sure_dk": "5.0"
       }
     ]
+  },
+  {
+    "parca_kodu": "V21-7,10",
+    "parca_aciklamasi": "MAKS KARSILIGI KISA",
+    "hedef_varyant": "",
+    "kategori": "VMKS",
+    "onaylayan": "TUNC",
+    "tarih": "2026-06-10T11:07:53.735Z",
+    "mukemmel_rota": [
+      {
+        "canias_kodu": "TA00000001",
+        "kisa_aciklama": "Hammade kesimi ve hazirligi",
+        "uzun_aciklama": "Ana parca malzemesinin (CARBIDE) belirtilen boyutlara gore testere ile kesilerek isleme hazirligi.",
+        "brut_kg": "0.05",
+        "net_kg": "0.04",
+        "fire_kg": "0.01",
+        "sure_dk": "5.0"
+      },
+      {
+        "canias_kodu": "DI00000002",
+        "kisa_aciklama": "Disli kismin tornalanmasi ve sekillendirilmesi",
+        "uzun_aciklama": "Parcanin dis capinin (45.00 mm) ve ic capinin (25.00 mm) tornalanmasi ve belirlenen boylara (25.00 mm) uygun sekilde hazirlanmasi.",
+        "brut_kg": "0.1",
+        "net_kg": "0.08",
+        "fire_kg": "0.02",
+        "sure_dk": "15.0"
+      },
+      {
+        "canias_kodu": "TO00000003",
+        "kisa_aciklama": "Ana govdenin tornalanmasi ve konik sekil verilmesi",
+        "uzun_aciklama": "Parcanin ana govdesinin (95.80 mm uzunluk) tornalanmasi, ic kanalinin (7.10 mm cap) acilmasi ve uc kisminin konik (30.00 mm cap, 50 derece aci) olarak sekillendirilmesi.",
+        "brut_kg": "0.2",
+        "net_kg": "0.15",
+        "fire_kg": "0.05",
+        "sure_dk": "25.0"
+      },
+      {
+        "canias_kodu": "OL00000004",
+        "kisa_aciklama": "Yuzey islemleri ve kalite kontrolu",
+        "uzun_aciklama": "Islem goren parcaya gerekli yuzey kalitesinin kazandirilmasi ve genel toleranslara (± 0,05 mm) uygunlugunun kalite kontrolu.",
+        "brut_kg": "0.01",
+        "net_kg": "0.01",
+        "fire_kg": "0.0",
+        "sure_dk": "10.0"
+      }
+    ],
+    "thumb": "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"
   }
 ]
