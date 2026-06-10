@@ -5,3 +5,4 @@ Pillow
 google-generativeai
 python-multipart
 python-dotenv
+pandas
