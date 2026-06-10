@@ -1,1 +1,29 @@
-[]
+[
+  {
+    "parca_kodu": "UC06010112",
+    "parca_aciklamasi": "Ø56x51,50 DAYAMA TAKOZU",
+    "hedef_varyant": "",
+    "onaylayan": "TUNC",
+    "tarih": "2026-06-10T10:13:04.283Z",
+    "mukemmel_rota": [
+      {
+        "canias_kodu": "TE06010112",
+        "kisa_aciklama": "Kesim",
+        "uzun_aciklama": "Hammaddenin belirtilen ölçülerde kesilmesi işlemi.",
+        "brut_kg": "0.10",
+        "net_kg": "0.08",
+        "fire_kg": "0.02",
+        "sure_dk": "2.0"
+      },
+      {
+        "canias_kodu": "CA06010112",
+        "kisa_aciklama": "Cakım",
+        "uzun_aciklama": "Parçanın her iki yüzeyindeki köşelerin 2.00x45 derece pah kırma işlemi.",
+        "brut_kg": "0.08",
+        "net_kg": "0.07",
+        "fire_kg": "0.01",
+        "sure_dk": "5.0"
+      }
+    ]
+  }
+]
