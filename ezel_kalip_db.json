@@ -72,5 +72,88 @@
       }
     ],
     "thumb": "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"
+  },
+  {
+    "parca_kodu": "UC09020243",
+    "parca_aciklamasi": "Ø40x30-Ø5,25 ARA DUZ BESLEME",
+    "hedef_varyant": "",
+    "kategori": "CDBES",
+    "onaylayan": "TUNC",
+    "tarih": "2026-08-06T07:22:16.362Z",
+    "mukemmel_rota": [
+      {
+        "canias_kodu": "KE09020243",
+        "kisa_aciklama": "Ø45mm 4140 Çubuktan Kesim",
+        "uzun_aciklama": "Ø45mm çapında 4140 malzeme çubuktan, 32mm boyunda parça kesimi. Kesim payı ve toleranslar dikkate alınarak minimum fire ile hassas kesim yapılır.",
+        "brut_kg": 0.4,
+        "net_kg": 0.395,
+        "fire_kg": 0.005,
+        "sure_dk": 1.5
+      },
+      {
+        "canias_kodu": "TO09020243",
+        "kisa_aciklama": "Dış Çap Kaba Tornalama ve Delik Delme",
+        "uzun_aciklama": "Kesilen malzemenin dış çapını Ø41.5mm'ye kaba tornalama, her iki yüzeyi 30.5mm toplam boya işleme ve merkezden Ø5.0mm ön delik delme operasyonu. Isıl işlem sonrası hassas toleranslar için pay bırakılır.",
+        "brut_kg": 0.395,
+        "net_kg": 0.33,
+        "fire_kg": 0.065,
+        "sure_dk": 5
+      },
+      {
+        "canias_kodu": "TN09020243",
+        "kisa_aciklama": "Dış Çap Finiş Tornalama ve Pah Kırma",
+        "uzun_aciklama": "Parçanın dış çapını Ø40.5mm'ye finiş tornalama, boyunu 30mm'ye yüzey işleme ve teknik resimdeki 0.50x45° pahları işleme. İç deliği Ø5.15mm'ye genişletme. Bu ölçüler ısıl işlem sonrası taşlama için yeterli pay bırakır.",
+        "brut_kg": 0.33,
+        "net_kg": 0.315,
+        "fire_kg": 0.015,
+        "sure_dk": 4
+      },
+      {
+        "canias_kodu": "IS09020243",
+        "kisa_aciklama": "Sertleştirme ve Temperleme (45-47 HRc)",
+        "uzun_aciklama": "4140 malzeme parçaların teknik resimde belirtilen 45-47 HRc sertliğe ulaşması için sertleştirme ve temperleme işlemi. İşlem sonrası oluşabilecek yüzey oksitlenmesi ve boyutsal çarpılmalar, sonraki taşlama operasyonlarında düzeltilecektir.",
+        "brut_kg": 0.315,
+        "net_kg": 0.315,
+        "fire_kg": 0,
+        "sure_dk": 60
+      },
+      {
+        "canias_kodu": "TA09020243",
+        "kisa_aciklama": "Dış Çap Taşlama (Ø40 -0.04)",
+        "uzun_aciklama": "Isıl işlem görmüş parçanın dış çapının, silindirik taşlama tezgahında teknik resimde belirtilen Ø40 -0.04 toleransına uygun olarak hassas taşlanması. Yüzey kalitesi ve boyutsal doğruluk sağlanır.",
+        "brut_kg": 0.315,
+        "net_kg": 0.295,
+        "fire_kg": 0.02,
+        "sure_dk": 3.5
+      },
+      {
+        "canias_kodu": "TI09020243",
+        "kisa_aciklama": "İç Çap Taşlama (Ø5.25 +0.03/-0.07)",
+        "uzun_aciklama": "Isıl işlem görmüş parçanın iç deliğinin, iç çap taşlama veya honlama tezgahında teknik resimde belirtilen Ø5.25 +0.03/-0.07 toleransına uygun olarak işlenmesi. Delik içi pürüzlülük ve dairesellik sağlanır.",
+        "brut_kg": 0.295,
+        "net_kg": 0.291,
+        "fire_kg": 0.004,
+        "sure_dk": 4.5
+      },
+      {
+        "canias_kodu": "KK09020243",
+        "kisa_aciklama": "Son Boyutsal ve Sertlik Kontrolü",
+        "uzun_aciklama": "Üretimi tamamlanmış parçaların tüm kritik boyutsal ölçülerinin (Dış Çap, İç Çap, Boy, Pahlar) ve sertliğinin (45-47 HRc) teknik resme ve kalite standartlarına uygunluğunun son kontrolü yapılır. Kalite raporları hazırlanır.",
+        "brut_kg": 0.291,
+        "net_kg": 0.291,
+        "fire_kg": 0,
+        "sure_dk": 2
+      },
+      {
+        "canias_kodu": "PA09020243",
+        "kisa_aciklama": "Ürün Paketleme ve Sevkiyata Hazırlık",
+        "uzun_aciklama": "Kalite kontrolü onaylanmış parçaların, sevkiyat sırasında hasar görmesini engelleyecek uygun ambalaj malzemeleri kullanılarak paketlenmesi ve etiketlenmesi. Sevkiyata hazır hale getirilmesi.",
+        "brut_kg": 0.291,
+        "net_kg": 0.291,
+        "fire_kg": 0,
+        "sure_dk": 0.5
+      }
+    ],
+    "thumb": "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"
   }
 ]
